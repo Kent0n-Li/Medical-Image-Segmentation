@@ -3,3 +3,4 @@ Pillow
 numpy
 opencv-python
 timm
+psutil
