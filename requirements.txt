@@ -4,3 +4,4 @@ numpy
 opencv-python
 timm
 psutil
+einops
