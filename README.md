@@ -9,6 +9,8 @@ conda activate nnsam
 git clone https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark.git
 cd Medical-Image-Segmentation-Benchmark
 
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+
 pip install git+https://github.com/ChaoningZhang/MobileSAM.git
 pip install timm
 pip install git+https://github.com/Kent0n-Li/nnSAM.git
