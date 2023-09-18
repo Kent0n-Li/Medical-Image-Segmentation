@@ -1,0 +1,382 @@
+[15:18:19.436] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, vit_patches_size=16)
+[15:18:19.441] 2 iterations per epoch. 400 max iterations 
+[15:18:27.122] iteration 1 : loss : 1.271394
+[15:18:27.221] iteration 2 : loss : 1.196538
+[15:18:32.693] epoch 0 : mean_dice : 0.069734
+[15:18:33.641] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_best.pth
+[15:18:38.435] iteration 3 : loss : 1.120088
+[15:18:38.533] iteration 4 : loss : 1.030571
+[15:18:43.658] iteration 5 : loss : 0.950913
+[15:18:43.751] iteration 6 : loss : 0.861413
+[15:18:49.084] iteration 7 : loss : 0.795017
+[15:18:49.183] iteration 8 : loss : 0.718571
+[15:18:55.303] iteration 9 : loss : 0.660204
+[15:18:55.405] iteration 10 : loss : 0.618190
+[15:19:00.849] iteration 11 : loss : 0.583808
+[15:19:00.937] iteration 12 : loss : 0.559913
+[15:19:06.091] epoch 5 : mean_dice : 0.012839
+[15:19:11.065] iteration 13 : loss : 0.536074
+[15:19:11.156] iteration 14 : loss : 0.518429
+[15:19:16.429] iteration 15 : loss : 0.499088
+[15:19:16.520] iteration 16 : loss : 0.481434
+[15:19:21.646] iteration 17 : loss : 0.466013
+[15:19:21.736] iteration 18 : loss : 0.450040
+[15:19:26.858] iteration 19 : loss : 0.439394
+[15:19:26.946] iteration 20 : loss : 0.427498
+[15:19:32.046] iteration 21 : loss : 0.418549
+[15:19:32.139] iteration 22 : loss : 0.410203
+[15:19:37.316] epoch 10 : mean_dice : 0.170692
+[15:19:37.970] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_best.pth
+[15:19:42.661] iteration 23 : loss : 0.406675
+[15:19:42.749] iteration 24 : loss : 0.396763
+[15:19:47.822] iteration 25 : loss : 0.396841
+[15:19:47.910] iteration 26 : loss : 0.386091
+[15:19:52.834] iteration 27 : loss : 0.386963
+[15:19:52.930] iteration 28 : loss : 0.378500
+[15:19:58.044] iteration 29 : loss : 0.373601
+[15:19:58.131] iteration 30 : loss : 0.363640
+[15:20:47.941] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, vit_patches_size=16)
+[15:20:47.946] 2 iterations per epoch. 400 max iterations 
+[15:21:00.831] epoch 0 : mean_dice : 0.067837
+[15:21:01.597] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_best.pth
+[15:21:32.346] epoch 5 : mean_dice : 0.002826
+[15:22:02.467] epoch 10 : mean_dice : 0.167191
+[15:22:03.079] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_best.pth
+[15:22:34.109] epoch 15 : mean_dice : 0.385522
+[15:22:34.814] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_best.pth
+[15:23:04.855] epoch 20 : mean_dice : 0.501676
+[15:23:05.384] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_best.pth
+[15:23:36.066] epoch 25 : mean_dice : 0.648316
+[15:23:36.632] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_best.pth
+[15:24:07.800] epoch 30 : mean_dice : 0.637556
+[15:24:39.555] epoch 35 : mean_dice : 0.637414
+[15:25:11.693] epoch 40 : mean_dice : 0.837101
+[15:25:12.276] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_best.pth
+[15:25:43.838] epoch 45 : mean_dice : 0.904824
+[15:25:44.492] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_best.pth
+[19:43:46.185] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, vit_patches_size=16)
+[19:44:49.863] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, vit_patches_size=16)
+[19:44:49.867] 2 iterations per epoch. 400 max iterations 
+[19:45:02.586] epoch 0 : mean_dice : 0.060662
+[19:45:03.765] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_best.pth
+[19:45:32.786] epoch 5 : mean_dice : 0.001368
+[19:49:08.867] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, vit_patches_size=16)
+[19:49:08.869] 2 iterations per epoch. 400 max iterations 
+[19:49:20.971] epoch 0 : mean_dice : 0.067966
+[19:49:21.623] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:49:50.246] epoch 5 : mean_dice : 0.037417
+[19:50:19.269] epoch 10 : mean_dice : 0.152719
+[19:50:19.857] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:50:49.208] epoch 15 : mean_dice : 0.332015
+[19:50:49.795] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:51:18.624] epoch 20 : mean_dice : 0.593439
+[19:51:19.206] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:51:47.858] epoch 25 : mean_dice : 0.653497
+[19:51:48.362] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:52:17.036] epoch 30 : mean_dice : 0.644159
+[19:52:45.860] epoch 35 : mean_dice : 0.650059
+[19:53:14.591] epoch 40 : mean_dice : 0.653300
+[19:53:38.641] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, vit_patches_size=16)
+[19:55:54.782] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[19:55:54.787] 2 iterations per epoch. 400 max iterations 
+[19:56:06.174] epoch 0 : mean_dice : 0.061929
+[19:56:06.536] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:56:34.952] epoch 5 : mean_dice : 0.000000
+[19:57:03.191] epoch 10 : mean_dice : 0.120006
+[19:57:03.515] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:57:32.002] epoch 15 : mean_dice : 0.141591
+[19:57:32.273] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:58:00.624] epoch 20 : mean_dice : 0.104014
+[19:58:29.272] epoch 25 : mean_dice : 0.114540
+[19:58:57.596] epoch 30 : mean_dice : 0.126462
+[19:59:25.372] epoch 35 : mean_dice : 0.162667
+[19:59:25.612] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:59:53.886] epoch 40 : mean_dice : 0.148477
+[20:00:22.230] epoch 45 : mean_dice : 0.192811
+[20:00:22.511] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:00:50.749] epoch 50 : mean_dice : 0.181618
+[20:01:19.329] epoch 55 : mean_dice : 0.241688
+[20:01:19.615] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:01:48.716] epoch 60 : mean_dice : 0.277508
+[20:01:49.003] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:02:17.568] epoch 65 : mean_dice : 0.329846
+[20:02:17.876] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:02:46.487] epoch 70 : mean_dice : 0.283589
+[20:03:15.305] epoch 75 : mean_dice : 0.435131
+[20:03:15.551] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:03:45.001] epoch 80 : mean_dice : 0.440887
+[20:03:45.286] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:04:13.841] epoch 85 : mean_dice : 0.433737
+[20:04:42.523] epoch 90 : mean_dice : 0.437710
+[20:04:58.777] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[20:10:05.060] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[20:12:07.879] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[20:33:48.663] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[20:33:48.667] 2 iterations per epoch. 400 max iterations 
+[20:34:00.033] epoch 0 : mean_dice : 0.061929
+[20:34:00.408] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:35:31.316] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[20:35:31.321] 2 iterations per epoch. 400 max iterations 
+[20:35:42.304] epoch 0 : mean_dice : 0.061929
+[20:35:42.764] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:36:11.658] epoch 5 : mean_dice : 0.000000
+[20:36:40.987] epoch 10 : mean_dice : 0.120006
+[20:36:41.300] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:37:10.947] epoch 15 : mean_dice : 0.141591
+[20:37:11.223] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:37:39.962] epoch 20 : mean_dice : 0.104014
+[20:38:08.928] epoch 25 : mean_dice : 0.114540
+[20:40:43.608] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[20:40:43.616] 2 iterations per epoch. 400 max iterations 
+[20:40:54.760] epoch 0 : mean_dice : 0.061929
+[20:40:55.090] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:41:23.770] epoch 5 : mean_dice : 0.000000
+[20:42:01.242] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, vit_patches_size=16)
+[20:42:01.252] 2 iterations per epoch. 400 max iterations 
+[20:42:13.124] epoch 0 : mean_dice : 0.064598
+[20:42:13.704] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:42:42.457] epoch 5 : mean_dice : 0.026950
+[20:43:11.361] epoch 10 : mean_dice : 0.165392
+[20:43:11.992] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:43:40.426] epoch 15 : mean_dice : 0.206657
+[20:43:41.038] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:44:16.235] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4)
+[20:44:16.238] 2 iterations per epoch. 400 max iterations 
+[20:44:28.675] epoch 0 : mean_dice : 0.184606
+[20:44:29.103] save model to E:\nnSAM\nnUNET\nnUNet_results\unet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:44:57.978] epoch 5 : mean_dice : 0.703830
+[20:44:58.291] save model to E:\nnSAM\nnUNET\nnUNet_results\unet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:45:27.298] epoch 10 : mean_dice : 0.894677
+[20:45:27.598] save model to E:\nnSAM\nnUNET\nnUNet_results\unet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:45:56.529] epoch 15 : mean_dice : 0.918698
+[20:45:56.846] save model to E:\nnSAM\nnUNET\nnUNet_results\unet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:46:25.619] epoch 20 : mean_dice : 0.923685
+[20:46:25.979] save model to E:\nnSAM\nnUNET\nnUNet_results\unet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:46:54.585] epoch 25 : mean_dice : 0.925171
+[20:46:54.892] save model to E:\nnSAM\nnUNET\nnUNet_results\unet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:47:23.711] epoch 30 : mean_dice : 0.926665
+[20:47:24.060] save model to E:\nnSAM\nnUNET\nnUNet_results\unet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:47:52.938] epoch 35 : mean_dice : 0.928035
+[20:47:53.271] save model to E:\nnSAM\nnUNET\nnUNet_results\unet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:48:22.162] epoch 40 : mean_dice : 0.926542
+[20:48:32.176] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4)
+[20:48:47.566] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4)
+[20:49:02.358] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4)
+[20:52:43.006] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4)
+[20:52:43.009] 2 iterations per epoch. 400 max iterations 
+[20:52:54.982] epoch 0 : mean_dice : 0.039932
+[20:52:55.446] save model to E:\nnSAM\nnUNET\nnUNet_results\r2unet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:53:24.844] epoch 5 : mean_dice : 0.023824
+[20:53:53.930] epoch 10 : mean_dice : 0.000000
+[21:26:23.572] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4)
+[21:26:23.575] 2 iterations per epoch. 400 max iterations 
+[21:26:35.521] epoch 0 : mean_dice : 0.184606
+[21:26:35.947] save model to E:\nnSAM\nnUNET\nnUNet_results\yournet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[22:32:54.919] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[22:32:54.923] 2 iterations per epoch. 400 max iterations 
+[22:33:05.827] epoch 0 : mean_dice : 0.061929
+[22:33:06.199] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[22:33:34.474] epoch 5 : mean_dice : 0.000000
+[22:34:03.697] epoch 10 : mean_dice : 0.120006
+[22:34:03.927] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[22:34:34.356] epoch 15 : mean_dice : 0.141591
+[22:34:34.637] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[22:35:03.917] epoch 20 : mean_dice : 0.104014
+[22:35:32.666] epoch 25 : mean_dice : 0.114540
+[22:36:01.520] epoch 30 : mean_dice : 0.126462
+[22:36:30.314] epoch 35 : mean_dice : 0.162667
+[22:36:30.605] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[22:36:58.677] epoch 40 : mean_dice : 0.148477
+[22:37:26.826] epoch 45 : mean_dice : 0.192811
+[22:37:27.099] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[22:37:55.005] epoch 50 : mean_dice : 0.181618
+[22:38:23.140] epoch 55 : mean_dice : 0.241688
+[22:38:23.395] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[22:38:50.863] epoch 60 : mean_dice : 0.277508
+[22:38:51.144] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[22:39:18.763] epoch 65 : mean_dice : 0.329846
+[22:39:19.006] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[22:42:11.566] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[22:42:11.566] 2 iterations per epoch. 400 max iterations 
+[22:42:22.011] epoch 0 : mean_dice : 0.061929
+[22:42:22.373] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[22:42:49.739] epoch 5 : mean_dice : 0.000000
+[22:43:17.292] epoch 10 : mean_dice : 0.120006
+[22:43:17.558] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[22:43:45.336] epoch 15 : mean_dice : 0.141591
+[22:43:45.593] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[09:11:56.215] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[09:11:56.222] 2 iterations per epoch. 400 max iterations 
+[09:12:06.991] epoch 0 : mean_dice : 0.061929
+[09:12:07.960] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[17:15:59.493] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[12:55:45.978] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[13:11:26.739] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[13:11:26.747] 2 iterations per epoch. 400 max iterations 
+[13:14:10.835] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[13:14:10.839] 2 iterations per epoch. 400 max iterations 
+[13:15:02.224] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[13:15:02.228] 2 iterations per epoch. 400 max iterations 
+[13:17:37.866] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[13:17:37.881] 2 iterations per epoch. 400 max iterations 
+[13:26:45.778] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[13:26:45.782] 2 iterations per epoch. 400 max iterations 
+[14:56:24.833] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[14:56:24.839] 2 iterations per epoch. 400 max iterations 
+[16:12:34.466] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[16:12:34.472] 2 iterations per epoch. 400 max iterations 
+[16:22:22.336] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[16:22:22.336] 2 iterations per epoch. 400 max iterations 
+[16:24:11.002] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[16:24:11.006] 2 iterations per epoch. 400 max iterations 
+[16:31:18.544] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[16:31:18.548] 2 iterations per epoch. 400 max iterations 
+[16:32:55.189] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[16:32:55.193] 2 iterations per epoch. 400 max iterations 
+[16:33:05.696] epoch 0 : mean_dice : 0.064730
+[16:33:06.656] save model to E:/nnSAM/nnUNET/nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[16:38:17.744] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[16:38:17.749] 2 iterations per epoch. 400 max iterations 
+[16:38:28.383] epoch 0 : mean_dice : 0.073732
+[16:38:28.725] save model to E:/nnSAM/nnUNET/nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[16:39:37.200] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[16:39:37.204] 2 iterations per epoch. 400 max iterations 
+[16:39:48.299] epoch 0 : mean_dice : 0.073732
+[16:39:48.628] save model to E:/nnSAM/nnUNET/nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[16:40:17.172] epoch 5 : mean_dice : 0.137054
+[16:40:17.428] save model to E:/nnSAM/nnUNET/nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[17:07:38.525] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[17:07:38.529] 2 iterations per epoch. 400 max iterations 
+[17:07:49.187] epoch 0 : mean_dice : 0.074982
+[17:07:49.558] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:04:31.910] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[18:04:31.915] 2 iterations per epoch. 400 max iterations 
+[18:04:42.458] epoch 0 : mean_dice : 0.074982
+[18:04:42.838] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:05:10.946] epoch 5 : mean_dice : 0.094566
+[18:05:11.176] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:05:39.649] epoch 10 : mean_dice : 0.141361
+[18:05:39.881] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:06:08.420] epoch 15 : mean_dice : 0.154151
+[18:06:08.655] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:06:37.364] epoch 20 : mean_dice : 0.130373
+[18:07:06.383] epoch 25 : mean_dice : 0.139406
+[18:07:35.305] epoch 30 : mean_dice : 0.158723
+[18:07:35.582] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:08:04.100] epoch 35 : mean_dice : 0.213596
+[18:08:04.338] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:08:32.997] epoch 40 : mean_dice : 0.233595
+[18:08:33.240] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:09:01.946] epoch 45 : mean_dice : 0.278173
+[18:09:02.240] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:09:30.752] epoch 50 : mean_dice : 0.300400
+[18:09:31.029] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:09:59.833] epoch 55 : mean_dice : 0.361720
+[18:10:00.104] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:10:30.123] epoch 60 : mean_dice : 0.397406
+[18:10:30.367] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:10:58.932] epoch 65 : mean_dice : 0.404345
+[18:10:59.223] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:11:27.751] epoch 70 : mean_dice : 0.405837
+[18:11:28.034] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:11:56.802] epoch 75 : mean_dice : 0.469476
+[18:11:57.092] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:12:26.325] epoch 80 : mean_dice : 0.474991
+[18:12:26.579] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:12:55.299] epoch 85 : mean_dice : 0.452678
+[18:13:24.130] epoch 90 : mean_dice : 0.474911
+[18:13:52.663] epoch 95 : mean_dice : 0.494654
+[18:13:52.920] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:14:21.692] epoch 100 : mean_dice : 0.492166
+[18:18:21.238] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[18:18:21.242] 2 iterations per epoch. 400 max iterations 
+[18:18:32.328] epoch 0 : mean_dice : 0.074982
+[18:18:32.697] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:19:01.538] epoch 5 : mean_dice : 0.094566
+[18:19:01.818] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:19:31.254] epoch 10 : mean_dice : 0.141361
+[18:19:31.472] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:20:00.992] epoch 15 : mean_dice : 0.154151
+[18:20:01.272] save model to E:\nnSAM\nnUNET\nnUNet_results\swinunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[18:20:31.440] epoch 20 : mean_dice : 0.130373
+[18:21:01.061] epoch 25 : mean_dice : 0.139406
+[18:29:59.912] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[18:53:50.556] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[18:59:08.361] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, cfg='./networks/swin_tiny_patch4_window7_224_lite.yaml', opts=None)
+[19:13:43.768] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4)
+[19:13:43.772] 2 iterations per epoch. 400 max iterations 
+[19:13:55.798] epoch 0 : mean_dice : 0.034994
+[19:13:56.270] save model to E:\nnSAM\nnUNET\nnUNet_results\r2unet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:14:26.096] epoch 5 : mean_dice : 0.000000
+[19:14:55.792] epoch 10 : mean_dice : 0.000000
+[19:15:25.778] epoch 15 : mean_dice : 0.000000
+[19:15:55.704] epoch 20 : mean_dice : 0.000000
+[19:16:25.695] epoch 25 : mean_dice : 0.000000
+[19:16:55.668] epoch 30 : mean_dice : 0.000000
+[19:17:31.757] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4)
+[19:17:31.761] 2 iterations per epoch. 400 max iterations 
+[19:17:43.610] epoch 0 : mean_dice : 0.132503
+[19:17:44.022] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:18:13.582] epoch 5 : mean_dice : 0.310388
+[19:18:13.918] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:18:42.493] epoch 10 : mean_dice : 0.401963
+[19:18:42.819] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:19:11.726] epoch 15 : mean_dice : 0.411216
+[19:19:12.058] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:19:40.997] epoch 20 : mean_dice : 0.403027
+[19:20:10.013] epoch 25 : mean_dice : 0.407000
+[19:20:39.159] epoch 30 : mean_dice : 0.409683
+[19:21:08.439] epoch 35 : mean_dice : 0.428542
+[19:21:08.798] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:21:37.923] epoch 40 : mean_dice : 0.459168
+[19:21:38.257] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:22:07.167] epoch 45 : mean_dice : 0.467325
+[19:22:07.497] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:22:36.495] epoch 50 : mean_dice : 0.472409
+[19:22:36.832] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:23:05.764] epoch 55 : mean_dice : 0.489902
+[19:23:06.078] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:23:35.209] epoch 60 : mean_dice : 0.488110
+[19:24:04.341] epoch 65 : mean_dice : 0.476721
+[19:24:33.688] epoch 70 : mean_dice : 0.498360
+[19:24:34.038] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:25:02.760] epoch 75 : mean_dice : 0.493580
+[19:25:32.451] epoch 80 : mean_dice : 0.495295
+[19:26:01.747] epoch 85 : mean_dice : 0.501806
+[19:26:02.106] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:26:31.130] epoch 90 : mean_dice : 0.506336
+[19:26:31.487] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:27:00.676] epoch 95 : mean_dice : 0.506695
+[19:27:01.018] save model to E:\nnSAM\nnUNET\nnUNet_results\attunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:27:30.399] epoch 100 : mean_dice : 0.502060
+[19:27:59.815] epoch 105 : mean_dice : 0.498628
+[19:28:29.060] epoch 110 : mean_dice : 0.503890
+[19:29:00.966] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4)
+[19:36:02.846] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, vit_patches_size=16)
+[19:36:02.851] 2 iterations per epoch. 400 max iterations 
+[19:36:14.890] epoch 0 : mean_dice : 0.057105
+[19:36:15.460] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:36:44.037] epoch 5 : mean_dice : 0.111147
+[19:36:44.608] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:37:13.477] epoch 10 : mean_dice : 0.118836
+[19:37:14.057] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:37:43.591] epoch 15 : mean_dice : 0.266201
+[19:37:44.185] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:38:12.705] epoch 20 : mean_dice : 0.296705
+[19:38:13.277] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:38:41.693] epoch 25 : mean_dice : 0.361556
+[19:38:42.282] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:39:10.771] epoch 30 : mean_dice : 0.369504
+[19:39:11.406] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:39:40.241] epoch 35 : mean_dice : 0.383446
+[19:39:40.818] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset023_21\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[19:40:07.233] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, vit_patches_size=16)
+[20:18:57.682] Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234, zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False, amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=4, vit_patches_size=16)
+[20:18:57.682] 2 iterations per epoch. 400 max iterations 
+[20:19:09.619] epoch 0 : mean_dice : 0.064644
+[20:19:10.274] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:19:39.198] epoch 5 : mean_dice : 0.023639
+[20:20:08.134] epoch 10 : mean_dice : 0.159456
+[20:20:08.792] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth
+[20:20:37.725] epoch 15 : mean_dice : 0.362046
+[20:20:38.490] save model to E:\nnSAM\nnUNET\nnUNet_results\transunet\Dataset011_example\nnUNetTrainer__nnUNetPlans__2d\fold_0\checkpoint_final.pth

@@ -1,0 +1,5 @@
+flask
+Pillow
+numpy
+opencv-python
+timm

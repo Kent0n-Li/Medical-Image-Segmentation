@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Medical Image Segmentation Benchmark</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container-fluid mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <h2 class="text-center">Medical Image Segmentation Benchmark</h2>
+            <form id="command-form">
+
+                <div class="mb-3">
+                    <label for="nnUNet_path" class="form-label">Project Path (e.g. E:\code\nnUNet)</label>
+                    <input type="text" class="form-control" id="nnUNet_path">
+                </div>
+
+                <div class="mb-3">
+                    <label for="dataset" class="form-label">Select Dataset</label>
+                    <select class="form-control" id="dataset">
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="model" class="form-label">Select Model</label>
+                    <select class="form-control" id="model">
+                        <option value="nnunet">nnUNet</option>
+                        <option value="nnsam">nnSAM</option>
+                        <option value="unet">UNet</option>
+                        <option value="transunet">TransUNet</option>
+                        <option value="swinunet">SwinUNet</option>
+                        <option value="unetpp">UNet++</option>
+                        <option value="attunet">AttentionUNet</option>
+                        <option value="r2unet">R2UNet</option>
+                        <option value="nnunet3d">nnUNet (3D)</option>
+                        <option value="yournet">Your Network</option>
+                        <!-- Add more models here -->
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="evaluation_type" class="form-label">Evaluation Type</label>
+                    <select class="form-control" id="evaluation_type">
+                        <option value="test">Train(80%)-Valid(20%)-Test</option>
+                        <option value="valid">5-Fold Validation</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="fold" class="form-label">Select Fold (When 5-Fold Validation)</label>
+                    <select class="form-control" id="fold">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                </div>
+                
+                <button id="set-paths-and-model-button" class="btn btn-secondary">Update Configuration</button>
+                <button id="preprocess-button" class="btn btn-info">Data Preprocess</button>
+                <button id="edit-network-button" class="btn btn-primary">Edit Network.py</button>
+                <button id="train-button" class="btn btn-success">Train</button>
+                <button id="test-button" class="btn btn-warning">Test</button>
+                <button id="summary-button" class="btn btn-primary">Summary Results</button>
+
+                <button id="stop-button" class="btn btn-danger">Stop</button>
+                 
+
+                <div id="loading" style="display: none;">
+                    <div style="display: flex; justify-content: center;">
+                    <img src="{{ url_for('static', filename='running.gif') }}" alt="Loading..."  style="width: 25%; height: auto; ">
+                </div>
+                </div>
+                
+
+            <div id="result" class="mt-4"></div>
+            <textarea id="output" class="mt-4 form-control" readonly rows="10"></textarea>
+
+            <div id="progress" style="display: none;">
+                <div style="display: flex; justify-content: center;">
+                <img src="{{ url_for('static', filename='progress.png') }}" alt="progress"  style="width: 80%; height: auto; ">
+            </div>
+            </div>
+
+            <br>
+            <div id="result_visiual">
+                <div style="display: flex; justify-content: center;">
+                <img src="{{ url_for('static', filename='result_visiual.png') }}" alt="result_visiual"  style="width: 50%; height: auto; ">
+            </div>
+            </div>
+
+
+            
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById("set-paths-and-model-button").addEventListener("click", function(e) {
+    e.preventDefault(); // Prevent the form from submitting
+    setPathsAndModel();
+});
+
+
+document.getElementById("edit-network-button").addEventListener("click", function(e) {
+    fetch("/edit_network");
+});
+
+
+function setPathsAndModel() {
+    const nnUNet_path = document.getElementById("nnUNet_path").value;
+    const model_name = document.getElementById("model").value;
+    const dataset = document.getElementById("dataset").value;
+    const evaluation_type = document.getElementById("evaluation_type").value;
+
+    fetch("/set_paths_and_model", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ nnUNet_path, model_name, dataset, evaluation_type })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status) {
+            document.getElementById("result").innerHTML = `<p class="text-success">${data.status}</p>`;
+        }
+    })
+    .catch(error => {
+        document.getElementById("result").innerHTML = `<p class="text-danger">${error}</p>`;
+    });
+}
+
+
+
+document.getElementById("summary-button").addEventListener("click", function(e) {
+    e.preventDefault(); // Prevent the form from submitting
+    runSummary();
+});
+
+function runSummary() {
+    const dataset = document.getElementById("dataset").value;
+    const fold = document.getElementById("fold").value;
+    const evaluation_type = document.getElementById("evaluation_type").value;
+
+    fetch("/summary_result", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ dataset, fold, evaluation_type })
+    }).then(response => response.json()).then(data => {
+        document.getElementById("result").innerHTML = `<p>Status: ${data.status || data.error}</p>`;
+    }).catch(error => {
+        document.getElementById("result").innerHTML = `<p class="text-danger">${error}</p>`;
+    });
+}
+
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("command-form");
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+        runCommand();
+    });
+
+    document.getElementById("stop-button").addEventListener("click", function(e) {
+        e.preventDefault(); // Prevent the form from submitting
+        stopCommand();
+    });
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Fetch paths, model name, and dataset list
+    fetch("/get_paths")
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("nnUNet_path").value = data.nnUNet_path;
+        document.getElementById("model").value = data.model_name;
+
+        // Populate the dataset dropdown
+        const datasetDropdown = document.getElementById("dataset");
+        datasetDropdown.innerHTML = data.dataset_list.map(dataset => `<option value="${dataset}">${dataset}</option>`).join('');
+        document.getElementById("dataset").value = data.dataset;
+    });
+});
+
+
+document.getElementById("preprocess-button").addEventListener("click", function(e) {
+    e.preventDefault(); 
+    runDataPreprocess();
+});
+
+function runDataPreprocess() {
+    const dataset = document.getElementById("dataset").value;
+    fetch("/data_preprocess", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ dataset })
+    }).then(response => response.json()).then(data => {
+        document.getElementById("result").innerHTML = `<p>Status: ${data.status || data.error}</p>`;
+    }).catch(error => {
+        document.getElementById("result").innerHTML = `<p class="text-danger">${error}</p>`;
+    });
+}
+
+
+document.getElementById("train-button").addEventListener("click", function(e) {
+    e.preventDefault(); 
+    runTraining();
+});
+
+function runTraining() {
+    const dataset = document.getElementById("dataset").value;
+    const fold = document.getElementById("fold").value;
+    const evaluation_type = document.getElementById("evaluation_type").value;
+
+    fetch("/train_model", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ dataset, fold, evaluation_type })
+    }).then(response => response.json()).then(data => {
+        document.getElementById("result").innerHTML = `<p>Status: ${data.status || data.error}</p>`;
+    }).catch(error => {
+        document.getElementById("result").innerHTML = `<p class="text-danger">${error}</p>`;
+    });
+}
+
+document.getElementById("test-button").addEventListener("click", function(e) {
+    e.preventDefault(); // Prevent the form from submitting
+    runTest();
+});
+
+function runTest() {
+    const dataset = document.getElementById("dataset").value;
+    const fold = document.getElementById("fold").value;
+    const evaluation_type = document.getElementById("evaluation_type").value;
+
+    fetch("/run_test", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ dataset, fold, evaluation_type })
+    }).then(response => response.json()).then(data => {
+        document.getElementById("result").innerHTML = `<p>Status: ${data.status || data.error}</p>`;
+    }).catch(error => {
+        document.getElementById("result").innerHTML = `<p class="text-danger">${error}</p>`;
+    });
+}
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    setInterval(updateOutput, 5000);
+});
+
+
+function updateOutput() {
+    fetch("/get_output")
+    .then(response => response.json())
+    .then(data => {
+        const outputElement = document.getElementById("output");
+        outputElement.value = data.content; 
+        outputElement.scrollTop = outputElement.scrollHeight;
+    });
+}
+
+
+function updateStatus() {
+    fetch("/get_status")
+    .then(response => response.json())
+    .then(data => {
+        const status = data.status;
+        const loadingElement = document.getElementById("loading");
+        const progressElement = document.getElementById("progress");
+        if (status === 'running') {
+            loadingElement.style.display = "block";  
+            progressElement.style.display = "block";  
+        } else {
+            loadingElement.style.display = "none"; 
+            progressElement.style.display = "none";
+        }
+    })
+    .catch(error => {
+        console.log("An error occurred while fetching the status:", error);
+    });
+}
+
+setInterval(updateStatus, 5000);
+
+
+
+
+
+function updateProgressImage() {
+    const progressImage = document.querySelector('#progress img');
+    const result_visiual = document.querySelector('#result_visiual img');
+
+    fetch("{{ url_for('static', filename='progress.png') }}?" + new Date().getTime())
+    .then(response => response.blob())
+    .then(blob => {
+        const objectURL = URL.createObjectURL(blob);
+        progressImage.src = objectURL;
+    })
+    .catch(error => console.error('Error fetching image:', error));
+
+    fetch("{{ url_for('static', filename='result_visiual.png') }}?" + new Date().getTime())
+    .then(response => response.blob())
+    .then(blob => {
+        const objectURL = URL.createObjectURL(blob);
+        result_visiual.src = objectURL;
+    })
+    .catch(error => console.error('Error fetching image:', error));
+
+}
+
+setInterval(updateProgressImage, 5000);
+
+
+
+
+function runCommand() {
+    const command = document.getElementById("command").value;
+    fetch("/run_command", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ command })
+    }).then(response => response.json()).then(data => {
+        // Update your logic here based on the data received
+        document.getElementById("result").innerHTML = `<p>Status: ${data.status || data.error}</p>`;
+    }).catch(error => {
+        document.getElementById("result").innerHTML = `<p class="text-danger">${error}</p>`;
+    });
+}
+
+function stopCommand() {
+    fetch("/stop_command", {
+        method: "POST"
+    }).then(response => response.json()).then(data => {
+        if (data.status) {
+            document.getElementById("result").innerHTML = `<p class="text-success">${data.status}</p>`;
+        } else if (data.error) {
+            document.getElementById("result").innerHTML = `<p class="text-danger">${data.error}</p>`;
+        }
+    }).catch(error => {
+        document.getElementById("result").innerHTML = `<p class="text-danger">${error}</p>`;
+    });
+}
+
+</script>
+
+</body>
+</html>
