@@ -12,6 +12,7 @@ from nnunetv2.dataset_conversion.generate_dataset_json import generate_dataset_j
 from PIL import Image
 import numpy as np
 import SimpleITK as sitk
+import webbrowser
 import cv2
 app = Flask(__name__)
 
@@ -878,5 +879,7 @@ if __name__ == '__main__':
             f.write("\n")
     if os.environ.get('current_fold') is None:
         os.environ['current_fold'] = '0'
+
+    webbrowser.open("http://127.0.0.1:5000/", new=2)
     
     app.run(debug=True, host='0.0.0.0', port=5000)
