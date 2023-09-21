@@ -19,6 +19,8 @@ pip install -r requirements.txt
 python web.py
 ```
 
+If you only want to use nnSAM, please install [this](https://github.com/Kent0n-Li/nnSAM).
+
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img1.png)
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img2.png)
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img3.png)
