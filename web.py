@@ -116,7 +116,7 @@ def calculate_metric_percase(pred, gt):
     if pred.sum() > 0 and gt.sum() > 0:
         dice = calculate_dice(pred, gt)
         asd = calculate_asd(pred, gt)
-        return dice, asd
+        return [dice, asd]
     elif pred.sum() > 0 and gt.sum() == 0:
         return 1, 0
     else:
@@ -408,7 +408,7 @@ def data_preprocess():
             img_path = os.path.join(imageTr_path, img_name)
             file_ext = os.path.splitext(img_name)[1]
             if file_ext in ['.png', '.bmp', '.tif']:
-                npimg = cv2.imread(img_path)
+                npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
                 npimg = np.array(npimg)
             elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
                 npimg = sitk.ReadImage(img_path)
@@ -657,12 +657,16 @@ def run_test():
                 cv2.imwrite(mask_save_path, mask_result)
 
 
+        metric_list = np.array(metric_list)
+        dice_each_case = np.mean(metric_list[:,:,0], axis=1)
+        asd_each_case = np.mean(metric_list[:,:,1], axis=1)
 
-        dice_mean = np.mean(np.mean(np.array(metric_list), axis=0), axis=0)[0]
-        dice_std = np.std(np.mean(np.array(metric_list), axis=0), axis=0)[0]
+        dice_mean = np.mean(dice_each_case, axis=0)
+        dice_std = np.std(dice_each_case, axis=0)
 
-        asd_mean = np.mean(np.mean(np.array(metric_list), axis=0), axis=0)[1]
-        asd_std = np.std(np.mean(np.array(metric_list), axis=0), axis=0)[1]
+        asd_mean = np.mean(asd_each_case, axis=0)
+        asd_std = np.std(asd_each_case, axis=0)
+
 
         #save into csv
         mean_csv_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'test_result_mean.csv')

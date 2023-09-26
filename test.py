@@ -117,7 +117,7 @@ class DynamicDataset(data.Dataset):
 
 
         if self.file_end in ['.png', '.bmp', '.tif']:
-            npimg = cv2.imread(img_path)
+            npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
             npimg = np.array(npimg)
             
         elif self.file_end in ['.gz', '.nrrd', '.mha', '.nii.gz', '.nii']:
