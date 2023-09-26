@@ -338,7 +338,7 @@ def data_preprocess():
                 label_path = os.path.join(labelTr_path, label_name)
                 file_ext = os.path.splitext(label_name)[1]
                 count += 1
-                if count > 1000:
+                if count > 20:
                     break
 
                 if file_ext in ['.png', '.bmp', '.tif']:
@@ -353,7 +353,7 @@ def data_preprocess():
                     return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
 
             unique_values = np.unique(np.array(label_file_list))
-            
+            print(unique_values)
 
             for label_name in os.listdir(labelTr_path):
                 label_path = os.path.join(labelTr_path, label_name)
@@ -408,7 +408,7 @@ def data_preprocess():
             img_path = os.path.join(imageTr_path, img_name)
             file_ext = os.path.splitext(img_name)[1]
             if file_ext in ['.png', '.bmp', '.tif']:
-                npimg = Image.open(img_path)
+                npimg = cv2.imread(img_path)
                 npimg = np.array(npimg)
             elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
                 npimg = sitk.ReadImage(img_path)

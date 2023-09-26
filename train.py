@@ -127,7 +127,7 @@ class DynamicDataset(data.Dataset):
 
 
         if self.file_end in ['.png', '.bmp', '.tif']:
-            npimg = Image.open(img_path)
+            npimg = cv2.imread(img_path)
             npimg = np.array(npimg)
             npgt = Image.open(gt_path)
             npgt = np.array(npgt)
