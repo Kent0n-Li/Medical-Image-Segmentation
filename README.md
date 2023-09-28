@@ -1,4 +1,4 @@
-# MedSeg: Medical Image Segmentation Toolbox
+# MedSeg: Medical Image Segmentation GUI Toolbox
 ## Get all segmentation baselines without writing any code.
 
 Install:
