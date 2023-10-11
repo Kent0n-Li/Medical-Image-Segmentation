@@ -34,7 +34,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--max_iterations', type=int,
                     default=30000, help='maximum epoch number to train')
 parser.add_argument('--max_epochs', type=int,
-                    default=200, help='maximum epoch number to train')
+                    default=300, help='maximum epoch number to train')
 parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
 parser.add_argument('--deterministic', type=int,  default=1,
                     help='whether use deterministic training')

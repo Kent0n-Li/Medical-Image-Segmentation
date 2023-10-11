@@ -207,6 +207,49 @@ def dataset_name_exists(target_name):
                 return True
     return False
 
+def resize_image(mask_path, output_path, new_size):
+    print(mask_path)
+    mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  
+    mask_resized = cv2.resize(mask, (new_size, new_size), interpolation=cv2.INTER_NEAREST)
+    cv2.imwrite(output_path, mask_resized)
+
+
+@app.route('/full_auto', methods=['POST'])
+def full_auto():
+    data = request.json
+    selected_models = data.get('models_list', [])
+    dataset = data.get('dataset')
+
+    try:
+        response = data_preprocess()
+        
+        for model in selected_models:
+            with app.test_client() as client:
+                # Call train_model endpoint
+                response = client.post('/train_model', json={
+                    'model_name': model,
+                    'dataset': dataset
+                })
+                print(response.json)
+
+                response = client.post('/run_test', json={
+                    'model_name': model,
+                    'dataset': dataset
+                })
+                print(response.json)
+
+                response = client.post('/summary_result', json={
+                    'model_name': model,
+                    'dataset': dataset
+                })
+                
+        
+        return jsonify({"status": "Full auto completed successfully."})
+
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {e}"})
+
+
 
 @app.route('/get_paths', methods=['GET'])
 def get_paths():
@@ -231,6 +274,7 @@ def import_dataset():
     testing_image_path = request.json.get('testing_image_path', '')
     testing_label_path = request.json.get('testing_label_path', '')
     dataset_name = request.json.get('dataset_name', '')
+    image_size = int(request.json.get('imageSize', '256'))
 
     if dataset_name_exists(dataset_name):
         return jsonify({'error': f"Dataset with name {dataset_name} already exists!"})
@@ -260,14 +304,26 @@ def import_dataset():
         # 复制文件
         for item in os.listdir(training_image_path):
             shutil.copy2(os.path.join(training_image_path, item), target_training_image_path)
-            os.rename(os.path.join(target_training_image_path, item), os.path.join(target_training_image_path, item.replace('.','_0000.')))
+            target_save_name = os.path.join(target_training_image_path, item.replace('.','_0000.'))
+            os.rename(os.path.join(target_training_image_path, item), target_save_name)
+            resize_image(target_save_name, target_save_name, image_size)
+
+
         for item in os.listdir(training_label_path):
             shutil.copy2(os.path.join(training_label_path, item), target_training_label_path)
+            target_save_name = os.path.join(target_training_label_path, item)
+            resize_image(target_save_name, target_save_name, image_size)
+
         for item in os.listdir(testing_image_path):
             shutil.copy2(os.path.join(testing_image_path, item), target_testing_image_path)
-            os.rename(os.path.join(target_testing_image_path, item), os.path.join(target_testing_image_path, item.replace('.','_0000.')))
+            target_save_name = os.path.join(target_testing_image_path, item.replace('.','_0000.'))
+            os.rename(os.path.join(target_testing_image_path, item), target_save_name)
+            resize_image(target_save_name, target_save_name, image_size)
+
         for item in os.listdir(testing_label_path):
             shutil.copy2(os.path.join(testing_label_path, item), target_testing_label_path)
+            target_save_name = os.path.join(target_testing_label_path, item)
+            resize_image(target_save_name, target_save_name, image_size)
 
         return jsonify({'status': 'Dataset imported successfully'})
 
@@ -333,10 +389,6 @@ def data_preprocess():
                                 num_train, file_ext, dataset_name=os.environ['current_dataset'])
 
         else:
-            if not os.path.exists(os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr_backup')):
-                shutil.copytree(labelTr_path, os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr_backup'))
-                shutil.copytree(labelTs_path, os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs_backup'))
-
 
             label_file_list = []
             count = 0
@@ -443,6 +495,7 @@ def data_preprocess():
 
         threading.Thread(target=run_command_async, args=(complete_command,)).start()
         return jsonify({'status': 'Preprocessing started'})
+
 
 
 @app.route('/train_model', methods=['POST'])
