@@ -160,6 +160,23 @@
                     </select>
                 </div>
 
+                <div class="mb-3">
+                    <label for="batch-size-slider" class="form-label">Batch Size: <span id="batch-size-label">4</span></label>
+                    <input type="range" class="form-range" id="batch-size-slider" min="1" max="64" step="1" value="4">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="lr-slider" class="form-label">Learning Rate: <span id="lr-label">0.01</span></label>
+                    <input type="range" class="form-range" id="lr-slider" min="0.0001" max="0.1" step="0.0001" value="0.01">
+                </div>
+
+                <div class="mb-3">
+                    <label for="epochs-slider" class="form-label">Total Epochs: <span id="epochs-label">100</span></label>
+                    <input type="range" class="form-range" min="1" max="500" step="1" id="epochs-slider" value="100">
+                </div>
+
+
+                
                 <div class="d-flex justify-content-center flex-wrap mb-3">
                     <button type="button" class="btn btn-secondary mb-2 mx-2" data-bs-toggle="modal" data-bs-target="#importDatasetModal">
                         <i class="fas fa-upload"></i> Import Dataset
@@ -214,10 +231,27 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
 
 <script>
-    
+
+document.getElementById("batch-size-slider").addEventListener("input", function() {
+    document.getElementById("batch-size-label").innerText = this.value;
+});
+
+document.getElementById("lr-slider").addEventListener("input", function() {
+    document.getElementById("lr-label").innerText = this.value;
+});
+
+document.getElementById("epochs-slider").addEventListener("input", function() {
+    document.getElementById("epochs-label").textContent = this.value;
+});
+
+
 document.getElementById("start-auto-button").addEventListener("click", function(e) {
     // Get selected dataset
     const dataset = document.getElementById("dataset").value;
+
+    const batchSize = document.getElementById("batch-size-slider").value;
+    const totalEpochs = document.getElementById("epochs-slider").value;
+    const learningRate = document.getElementById("lr-slider").value;
 
     e.preventDefault(); 
 
@@ -233,7 +267,7 @@ document.getElementById("start-auto-button").addEventListener("click", function(
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({models_list: selectedModels, dataset: dataset })
+        body: JSON.stringify({models_list: selectedModels, dataset: dataset, batchSize: batchSize, totalEpochs: totalEpochs, learningRate: learningRate })
     })
     .then(response => response.json())
     .then(data => {
@@ -389,13 +423,16 @@ document.getElementById("train-button").addEventListener("click", function(e) {
 function runTraining() {
     const model_name = document.getElementById("model").value;
     const dataset = document.getElementById("dataset").value;
+    const batchSize = document.getElementById("batch-size-slider").value;
+    const totalEpochs = document.getElementById("epochs-slider").value;
+    const learningRate = document.getElementById("lr-slider").value;
 
     fetch("/train_model", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({model_name, dataset })
+        body: JSON.stringify({model_name, dataset, batchSize, totalEpochs, learningRate })
     }).then(response => response.json()).then(data => {
         document.getElementById("result").innerHTML = `<p>Status: ${data.status || data.error}</p>`;
     }).catch(error => {

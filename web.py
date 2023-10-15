@@ -220,6 +220,10 @@ def full_auto():
     selected_models = data.get('models_list', [])
     dataset = data.get('dataset')
 
+    batchSize = data.get('batchSize', '4')
+    totalEpochs = data.get('totalEpochs', '100')
+    learningRate = data.get('learningRate', '0.01')
+    
     try:
         response = data_preprocess()
         
@@ -228,7 +232,10 @@ def full_auto():
                 # Call train_model endpoint
                 response = client.post('/train_model', json={
                     'model_name': model,
-                    'dataset': dataset
+                    'dataset': dataset,
+                    'batchSize': batchSize,
+                    'totalEpochs': totalEpochs,
+                    'learningRate': learningRate
                 })
                 print(response.json)
 
@@ -511,6 +518,11 @@ def train_model():
         dataset_id = request.json.get('dataset', '')
         os.environ['current_dataset'] = dataset_id
 
+        batchSize = request.json.get('batchSize', '4')
+        totalEpochs = request.json.get('totalEpochs', '100')
+        learningRate = request.json.get('learningRate', '0.01')
+
+
         nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__2d'
         if os.environ['MODEL_NAME'] == 'nnunet3d':
             nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__3d_fullres'
@@ -526,9 +538,9 @@ def train_model():
         else:
             split_json_path = os.path.join(os.environ['nnUNet_preprocessed'], dataset_id, 'splits_final.json')
             if not os.path.exists(split_json_path):
-                complete_command = f"conda activate {conda_env} && nnUNetv2_train {dataset_id} 2d {fold} && python train.py"
+                complete_command = f"conda activate {conda_env} && nnUNetv2_train {dataset_id} 2d {fold} && python train.py --batchSize {batchSize} --totalEpochs {totalEpochs} --learningRate {learningRate}"
             else:
-                complete_command = f"conda activate {conda_env} && python train.py"
+                complete_command = f"conda activate {conda_env} && python train.py --batch_size {batchSize} --max_epochs {totalEpochs} --base_lr {learningRate}"
 
         print(complete_command)
 
