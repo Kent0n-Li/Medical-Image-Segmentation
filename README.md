@@ -11,7 +11,7 @@ git clone https://github.com/Kent0n-Li/Medical-Image-Segmentation.git
 cd Medical-Image-Segmentation-Benchmark
 ```
 
-Choose a suitable Pytorch with CUDA to install
+Choose a suitable Pytorch with CUDA to install <br> 
 根据CUDA选择合适版本的Pytorch进行安装
 ```bash
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
