@@ -192,7 +192,7 @@ if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if device.type == 'cuda':
         total_memory = torch.cuda.get_device_properties(device).total_memory / (1024 ** 3)  # bytes to GB
-        args.batch_size = int(total_memory / 10)*2
+        args.batch_size = 2
     else:
         args.batch_size = 2
     
