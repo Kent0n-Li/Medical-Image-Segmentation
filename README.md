@@ -9,9 +9,16 @@ conda create -n nnsam python=3.9
 conda activate nnsam
 git clone https://github.com/Kent0n-Li/Medical-Image-Segmentation.git
 cd Medical-Image-Segmentation-Benchmark
+```
 
+Choose a suitable Pytorch with CUDA to install
+根据CUDA选择合适版本的Pytorch进行安装
+```bash
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
 
+```bash
 pip install git+https://github.com/ChaoningZhang/MobileSAM.git
 pip install timm
 pip install git+https://github.com/Kent0n-Li/nnSAM.git
