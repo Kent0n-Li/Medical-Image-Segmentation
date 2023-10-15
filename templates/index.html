@@ -8,11 +8,75 @@
     </head>
 <body>
 
+
+
+
+
 <div class="container-fluid mt-5">
     <div class="row">
         <div class="col-md-6 offset-md-3">
             <h2 class="text-center">Medical Image Segmentation Benchmark</h2>
             <form id="command-form">
+
+                <!-- Model Selection Modal -->
+                <div class="modal fade" id="modelSelectionModal" tabindex="-1" aria-labelledby="modelSelectionModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modelSelectionModalLabel">Select Models</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="nnunet" id="nnunet">
+                                    <label class="form-check-label" for="nnunet">nnUNet</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="nnsam" id="nnsam">
+                                    <label class="form-check-label" for="nnsam">nnSAM</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="unet" id="unet">
+                                    <label class="form-check-label" for="unet">UNet</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="transunet" id="transunet">
+                                    <label class="form-check-label" for="transunet">TransUNet</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="swinunet" id="swinunet">
+                                    <label class="form-check-label" for="swinunet">SwinUNet</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="unetpp" id="unetpp">
+                                    <label class="form-check-label" for="unetpp">UNet++</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="attunet" id="attunet">
+                                    <label class="form-check-label" for="attunet">AttentionUNet</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="r2unet" id="r2unet">
+                                    <label class="form-check-label" for="r2unet">R2UNet</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="nnunet3d" id="nnunet3d">
+                                    <label class="form-check-label" for="nnunet3d">nnUNet (3D)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="yournet" id="yournet">
+                                    <label class="form-check-label" for="yournet">Your Network</label>
+                                </div>
+                                
+                                
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" id="start-auto-button" class="btn btn-primary">Start Full Auto</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
 
                 <!-- Import Dataset Modal -->
@@ -40,11 +104,26 @@
                             <label for="testing_label_path" class="form-label">Testing Label Path</label>
                             <input type="text" class="form-control" id="testing_label_path">
                         </div>
+                        
+                        <div class="mb-3">
+                            <label for="image-size" class="form-label">Select Image Size</label>
+                            <select class="form-control" id="image-size">
+                                <option value="128">128</option>
+                                <option value="192">192</option>
+                                <option value="224">224</option>
+                                <option value="256">256</option>
+                                <option value="320">320</option>
+                                <option value="384">384</option>
+                                <option value="512">512</option>
+                                <option value="1024">1024</option>
+                            </select>
+                        </div>
+
                         <div class="mb-3">
                             <label for="dataset_name" class="form-label">Dataset Name</label>
                             <input type="text" class="form-control" id="dataset_name">
                         </div>
-                        </div>
+                        </div>                 
                         <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" id="import-dataset-button" class="btn btn-primary">Import Dataset</button>
@@ -53,6 +132,9 @@
                     </div>
                 </div>
                 
+
+                
+                       
   
 
                 <div class="mb-3">
@@ -78,18 +160,24 @@
                     </select>
                 </div>
 
-                <div class="d-grid gap-2 d-md-block mb-3">
-                    <button type="button" class="btn btn-secondary mb-2" data-bs-toggle="modal" data-bs-target="#importDatasetModal">
+                <div class="d-flex justify-content-center flex-wrap mb-3">
+                    <button type="button" class="btn btn-secondary mb-2 mx-2" data-bs-toggle="modal" data-bs-target="#importDatasetModal">
                         <i class="fas fa-upload"></i> Import Dataset
                     </button>
-                    <button id="preprocess-button" class="btn btn-info mb-2"><i class="fas fa-cogs"></i> Data Preprocess</button>
-                    <button id="edit-network-button" class="btn btn-primary mb-2"><i class="fas fa-edit"></i> Edit Network.py</button>
-                    <button id="train-button" class="btn btn-success mb-2"><i class="fas fa-play"></i> Train</button>
-                    <button id="test-button" class="btn btn-warning mb-2"><i class="fas fa-flask"></i> Test</button>
-                    <button id="summary-button" class="btn btn-primary mb-2"><i class="fas fa-list"></i> Summary Results</button>
-                    <button id="auto-button" class="btn btn-info mb-2"><i class="fas fa-robot"></i> Full Auto</button>
-                    <button id="stop-button" class="btn btn-danger mb-2"><i class="fas fa-stop"></i> Stop</button>
+                    <button id="preprocess-button" class="btn btn-info mb-2 mx-2"><i class="fas fa-cogs"></i> Data Preprocess</button>
+                    <button id="edit-network-button" class="btn btn-primary mb-2 mx-2"><i class="fas fa-edit"></i> Edit Network</button>
+                    <button id="train-button" class="btn btn-success mb-2 mx-2"><i class="fas fa-play"></i> Train</button>
+                    <button id="test-button" class="btn btn-warning mb-2 mx-2"><i class="fas fa-flask"></i> Test</button>
+                    <button id="summary-button" class="btn btn-primary mb-2 mx-2"><i class="fas fa-list"></i> Summary Results</button>
+
+
+                    <button type="button" class="btn btn-success mb-2 mx-2" data-bs-toggle="modal" data-bs-target="#modelSelectionModal">
+                        <i class="fas fa-robot"></i> Full Auto
+                    </button>
+
+                    <button id="stop-button" class="btn btn-danger mb-2 mx-2"><i class="fas fa-stop"></i> Stop</button>
                 </div>
+                
                 
                 
 
@@ -126,12 +214,46 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
 
 <script>
+    
+document.getElementById("start-auto-button").addEventListener("click", function(e) {
+    // Get selected dataset
+    const dataset = document.getElementById("dataset").value;
+
+    e.preventDefault(); 
+
+    let selectedModels = [];
+    document.querySelectorAll(".form-check-input:checked").forEach(checkbox => {
+        selectedModels.push(checkbox.value);
+    });
+
+    alert("Start Full Auto");
+    // Send the data to the backend
+    fetch("/full_auto", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({models_list: selectedModels, dataset: dataset })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status) {
+            alert(data.status);
+        } else if (data.error) {
+            alert("Error: " + data.error);
+        }
+    })
+    .catch(error => {
+        alert("Error: " + error);
+    });
+
+});
+
 
 
 document.getElementById("edit-network-button").addEventListener("click", function(e) {
     fetch("/edit_network");
 });
-
 
 document.getElementById("import-dataset-button").addEventListener("click", function(e) {
     const training_image_path = document.getElementById("training_image_path").value;
@@ -139,18 +261,20 @@ document.getElementById("import-dataset-button").addEventListener("click", funct
     const testing_image_path = document.getElementById("testing_image_path").value;
     const testing_label_path = document.getElementById("testing_label_path").value;
     const dataset_name = document.getElementById("dataset_name").value;
+    const imageSize = document.getElementById("image-size").value;
 
     fetch("/import_dataset", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ training_image_path, training_label_path, testing_image_path, testing_label_path, dataset_name })
+        body: JSON.stringify({ training_image_path, training_label_path, testing_image_path, testing_label_path, imageSize , dataset_name })
     })
     .then(response => response.json())
     .then(data => {
         if (data.status) {
             alert(data.status);
+            window.location.reload();
         } else if (data.error) {
             alert("Error: " + data.error);
         }
@@ -212,12 +336,6 @@ function runSummary() {
 
 
 document.addEventListener("DOMContentLoaded", function() {
-    const form = document.getElementById("command-form");
-    form.addEventListener("submit", function(e) {
-        e.preventDefault();
-        runCommand();
-    });
-
     document.getElementById("stop-button").addEventListener("click", function(e) {
         e.preventDefault(); // Prevent the form from submitting
         stopCommand();
@@ -375,24 +493,6 @@ function updateProgressImage() {
 
 setInterval(updateProgressImage, 5000);
 
-
-
-
-function runCommand() {
-    const command = document.getElementById("command").value;
-    fetch("/run_command", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ command })
-    }).then(response => response.json()).then(data => {
-        // Update your logic here based on the data received
-        document.getElementById("result").innerHTML = `<p>Status: ${data.status || data.error}</p>`;
-    }).catch(error => {
-        document.getElementById("result").innerHTML = `<p class="text-danger">${error}</p>`;
-    });
-}
 
 function stopCommand() {
     fetch("/stop_command", {
