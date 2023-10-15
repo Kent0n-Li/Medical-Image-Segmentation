@@ -2,7 +2,7 @@
 
 ## Get all segmentation baselines without writing any code. <br> 不用写任何代码便可以运行所有分割模型
 
-Install:
+Install (安装步骤):
 
 ```bash
 conda create -n nnsam python=3.9
