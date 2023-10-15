@@ -32,6 +32,7 @@ python web.py
 ```
 
 If you only want to use nnSAM, please install [this](https://github.com/Kent0n-Li/nnSAM).
+如果你只想运行nnSAM,请访问该代码仓库[this](https://github.com/Kent0n-Li/nnSAM)
 
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img1.png)
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img2.png)
