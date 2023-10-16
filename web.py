@@ -209,9 +209,11 @@ def dataset_name_exists(target_name):
 
 def resize_image(mask_path, output_path, new_size):
     print(mask_path)
-    mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  
-    mask_resized = cv2.resize(mask, (new_size, new_size), interpolation=cv2.INTER_NEAREST)
-    cv2.imwrite(output_path, mask_resized)
+    file_ext = os.path.splitext(mask_path)[1]
+    if file_ext in ['.png', '.bmp', '.tif']:
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  
+        mask_resized = cv2.resize(mask, (new_size, new_size), interpolation=cv2.INTER_NEAREST)
+        cv2.imwrite(output_path, mask_resized)
 
 
 @app.route('/full_auto', methods=['POST'])
@@ -310,24 +312,34 @@ def import_dataset():
 
         # 复制文件
         for item in os.listdir(training_image_path):
+            file_ext = os.path.splitext(os.path.join(training_image_path, item))[1]
+            if file_ext == '.gz':
+                    file_ext = '.nii.gz'
             shutil.copy2(os.path.join(training_image_path, item), target_training_image_path)
-            target_save_name = os.path.join(target_training_image_path, item.replace('.','_0000.'))
+            target_save_name = os.path.join(target_training_image_path, item.replace(file_ext,'_0000'+file_ext))
             os.rename(os.path.join(target_training_image_path, item), target_save_name)
             resize_image(target_save_name, target_save_name, image_size)
 
 
         for item in os.listdir(training_label_path):
+
+
             shutil.copy2(os.path.join(training_label_path, item), target_training_label_path)
             target_save_name = os.path.join(target_training_label_path, item)
             resize_image(target_save_name, target_save_name, image_size)
 
         for item in os.listdir(testing_image_path):
+            file_ext = os.path.splitext(os.path.join(testing_image_path, item))[1]
+            if file_ext == '.gz':
+                    file_ext = '.nii.gz'
             shutil.copy2(os.path.join(testing_image_path, item), target_testing_image_path)
-            target_save_name = os.path.join(target_testing_image_path, item.replace('.','_0000.'))
+            target_save_name = os.path.join(target_testing_image_path, item.replace(file_ext,'_0000'+file_ext))
             os.rename(os.path.join(target_testing_image_path, item), target_save_name)
             resize_image(target_save_name, target_save_name, image_size)
 
         for item in os.listdir(testing_label_path):
+
+
             shutil.copy2(os.path.join(testing_label_path, item), target_testing_label_path)
             target_save_name = os.path.join(target_testing_label_path, item)
             resize_image(target_save_name, target_save_name, image_size)
