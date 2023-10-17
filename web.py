@@ -14,6 +14,9 @@ import numpy as np
 import SimpleITK as sitk
 import webbrowser
 import cv2
+
+from scipy.spatial import cKDTree
+
 app = Flask(__name__)
 
 
@@ -93,7 +96,6 @@ def calculate_dice(pred, gt):
     return 2 * intersection / union
 
 def calculate_asd(pred, gt):
-    # 计算平均表面距离（这里是一个简化的版本，可能需要更高级的算法来计算准确的表面距离）
     pred_border = np.logical_xor(pred, np.roll(pred, 1, axis=0))
     gt_border = np.logical_xor(gt, np.roll(gt, 1, axis=0))
 
@@ -103,11 +105,17 @@ def calculate_asd(pred, gt):
     if len(pred_border_indices) == 0 or len(gt_border_indices) == 0:
         return 0.0  # 无法计算表面距离
     
-    distances = np.linalg.norm(pred_border_indices[:, np.newaxis] - gt_border_indices[np.newaxis, :], axis=-1)
-    asd = np.mean(np.min(distances, axis=1)) + np.mean(np.min(distances, axis=0))
+    tree_gt = cKDTree(gt_border_indices)
+    tree_pred = cKDTree(pred_border_indices)
+
+    distances_to_gt = tree_gt.query(pred_border_indices)[0]
+    distances_to_pred = tree_pred.query(gt_border_indices)[0]
+
+    asd = np.mean(distances_to_gt) + np.mean(distances_to_pred)
     asd /= 2.0
     
     return asd
+
 
 def calculate_metric_percase(pred, gt):
     pred[pred > 0] = 1
@@ -641,6 +649,9 @@ def run_test():
 
             if os.environ['MODEL_NAME'] == 'nnunet3d':
                 if file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
+                    img = sitk.ReadImage(img_path)
+                    img = sitk.GetArrayFromImage(img)
+
                     pred = sitk.ReadImage(prediction_path)
                     pred = sitk.GetArrayFromImage(pred)
                     ground_truth = sitk.ReadImage(ground_truth_path)
@@ -649,24 +660,46 @@ def run_test():
                     return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
 
 
-                half_layer = int(pred.shape[0]/2)
-                mask_result = np.zeros_like(pred[half_layer])
-                mask_result = np.repeat(mask_result[:, :, np.newaxis], 3, axis=2)
+                half_layer = int(np.argmax(ground_truth.sum(axis=(1,2))))
+                img = img[half_layer]
+                img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
+
+                mask_result = np.zeros_like(img)
+                img_with_GT = img.copy()
+
                 each_metric = []
                 for i in range(1, label_num):
                     each_metric.append(calculate_metric_percase(pred == i, ground_truth == i))
+
+
                     mask = np.where(pred[half_layer] == i, 1, 0).astype(np.uint8)
+                    colored_mask = np.zeros_like(img)
+                    colored_mask[mask == 1] = colors[i - 1]
+                    img = cv2.addWeighted(img, 1, colored_mask, 0.5, 0)
+
+                    gt_mask = np.where(ground_truth[half_layer] == i, 1, 0).astype(np.uint8)
+                    colored_mask_gt = np.zeros_like(img_with_GT)
+                    colored_mask_gt[gt_mask == 1] = colors[i - 1]
+                    img_with_GT = cv2.addWeighted(img_with_GT, 1, colored_mask_gt, 0.5, 0)
+
                     mask_result[mask == 1] = colors[i - 1]
+
+
 
                 metric_list.append(each_metric)
 
                 img_with_mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'visualization_result', test_img_name+'.png')
                 os.makedirs(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'visualization_result'), exist_ok=True)
-                cv2.imwrite(img_with_mask_save_path, mask_result)
+                cv2.imwrite(img_with_mask_save_path, img)
+
+                img_with_GT_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'GT_result', test_img_name+'.png')
+                os.makedirs(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'GT_result'), exist_ok=True)
+                cv2.imwrite(img_with_GT_save_path, img_with_GT)
+
+
                 mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'mask_result', test_img_name+'.png')
                 os.makedirs(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'mask_result'), exist_ok=True)
                 cv2.imwrite(mask_save_path, mask_result)
-
 
 
 
@@ -790,41 +823,44 @@ def summary_result():
     method_list_path = os.path.join(os.environ['nnUNet_results'])
     method_list = os.listdir(method_list_path)
 
-    if not os.environ['MODEL_NAME'] == 'nnunet3d':
-        for image_case_name in test_img_list:
 
-            images = []
-            
-            for method_name in method_list:
-                img_with_GT_save_path =  os.path.join(os.environ['nnUNet_results'], method_name, os.environ['current_dataset'], nnUNetPlans, 'GT_result', image_case_name)
-                if os.path.exists(img_with_GT_save_path) and len(images) == 0:
-                    img = Image.open(img_with_GT_save_path)
-                    images.append(img)
+    for image_case_name in test_img_list:
+        if os.environ['MODEL_NAME'] == 'nnunet3d':
+            image_case_name = image_case_name + '.png'
+
+        images = []
+        
+        for method_name in method_list:
+            img_with_GT_save_path =  os.path.join(os.environ['nnUNet_results'], method_name, os.environ['current_dataset'], nnUNetPlans, 'GT_result', image_case_name)
+            print(img_with_GT_save_path)
+            if os.path.exists(img_with_GT_save_path) and len(images) == 0:
+                img = Image.open(img_with_GT_save_path)
+                images.append(img)
 
 
-                img_with_mask_save_path = os.path.join(os.environ['nnUNet_results'], method_name, os.environ['current_dataset'], nnUNetPlans, 'visualization_result', image_case_name)
-                if os.path.exists(img_with_mask_save_path):
-                    img = Image.open(img_with_mask_save_path)
-                    images.append(img)
+            img_with_mask_save_path = os.path.join(os.environ['nnUNet_results'], method_name, os.environ['current_dataset'], nnUNetPlans, 'visualization_result', image_case_name)
+            if os.path.exists(img_with_mask_save_path):
+                img = Image.open(img_with_mask_save_path)
+                images.append(img)
 
-            total_width = sum([img.width for img in images])
-            max_height = max([img.height for img in images])
+        total_width = sum([img.width for img in images])
+        max_height = max([img.height for img in images])
 
-            # 创建一个新的空白图片，大小为所有图片宽度的总和，高度为最大的那张图片的高度
-            stitched_image = Image.new('RGB', (total_width, max_height))
+        # 创建一个新的空白图片，大小为所有图片宽度的总和，高度为最大的那张图片的高度
+        stitched_image = Image.new('RGB', (total_width, max_height))
 
-            # 将每张图片粘贴到新图片上
-            x_offset = 0
-            for img in images:
-                stitched_image.paste(img, (x_offset,0))
-                x_offset += img.width
+        # 将每张图片粘贴到新图片上
+        x_offset = 0
+        for img in images:
+            stitched_image.paste(img, (x_offset,0))
+            x_offset += img.width
 
-            output_save_path = os.path.join(os.environ['nnUNet_results'], 'summary',os.environ['current_dataset'], 'visualization_result')
-            os.makedirs(output_save_path, exist_ok=True)
-            stitched_image.save(os.path.join(output_save_path, image_case_name))
+        output_save_path = os.path.join(os.environ['nnUNet_results'], 'summary',os.environ['current_dataset'], 'visualization_result')
+        os.makedirs(output_save_path, exist_ok=True)
+        stitched_image.save(os.path.join(output_save_path, image_case_name))
 
-        #save image  into static result_visiual.png
-        shutil.copy(os.path.join(output_save_path, image_case_name), 'static/result_visiual.png')
+    #save image  into static result_visiual.png
+    shutil.copy(os.path.join(output_save_path, image_case_name), 'static/result_visiual.png')
 
     
     dice_all = []
