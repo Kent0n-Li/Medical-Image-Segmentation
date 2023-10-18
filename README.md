@@ -1,4 +1,4 @@
-# MedSeg: Medical Image Segmentation GUI Toolbox <br> 可视化医学图像分割工具箱
+# MedSeg: Medical Image Segmentation GUI Toolbox <br> 可视化医学图像分割软件
 
 ## Get all segmentation baselines without writing any code. <br> 不用写任何代码便可以运行所有分割模型
 
