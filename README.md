@@ -39,3 +39,18 @@ If you only want to use nnSAM, please install [this](https://github.com/Kent0n-L
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img3.png)
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img4.png)
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img5.png)
+
+
+
+## Citation
+
+If you find this repository useful for your research, please use the following.
+
+```
+@article{li2023nnsam,
+  title={nnSAM: Plug-and-play Segment Anything Model Improves nnUNet Performance},
+  author={Li, Yunxiang and Jing, Bowen and Li, Zihan and Wang, Jing and Zhang, You},
+  journal={arXiv preprint arXiv:2309.16967},
+  year={2023}
+}
+```
