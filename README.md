@@ -34,10 +34,22 @@ python web.py
 If you only want to use nnSAM, please install [this](https://github.com/Kent0n-Li/nnSAM). <br>
 如果你只想运行nnSAM,请访问该代码仓库[this](https://github.com/Kent0n-Li/nnSAM)
 
+样例数据集：[Demo Dataset](https://github.com/Kent0n-Li/Medical-Image-Segmentation/tree/main/Demo_dataset)
+
+
+## Overview 页面总览
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img1.png)
+
+## Choose Model  选择模型
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img2.png)
+
+## Import Data 导入你的数据集
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img3.png)
+
+## Full Auto 全自动模式，一键完成从数据预处理到训练测试和结果总结
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img4.png)
+
+## Result Summary
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img5.png)
 
 
