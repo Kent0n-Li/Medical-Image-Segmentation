@@ -1,6 +1,7 @@
-<center>
-    <img src="https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/medseglogo.png" width="15%">
-</center>
+<div style="text-align:center;">
+    <img src="https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/medseglogo.png" width="20%">
+</div>
+
 
 # MedSeg: Medical Image Segmentation GUI Toolbox <br> 可视化医学图像分割软件
 
