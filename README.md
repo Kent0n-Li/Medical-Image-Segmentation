@@ -50,7 +50,7 @@ If you only want to use nnSAM, please install [this](https://github.com/Kent0n-L
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img2.png)
 
 ## Import Data 导入你的数据集 （2D: png, 3D: nii.gz) 
-样例数据集：[Demo Dataset](https://github.com/Kent0n-Li/Medical-Image-Segmentation/tree/main/Demo_dataset)
+# 样例数据集：[Demo Dataset](https://github.com/Kent0n-Li/Medical-Image-Segmentation/tree/main/Demo_dataset)
 ![image](https://github.com/Kent0n-Li/Medical-Image-Segmentation-Benchmark/blob/main/img/img3.png)
 
 ## Full Auto 全自动模式，一键完成从数据预处理到训练测试和结果总结
