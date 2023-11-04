@@ -8,6 +8,9 @@
 
 ## Get all segmentation baselines without writing any code. <br> 不用写任何代码便可以运行所有分割模型
 
+The current code is designed for Windows, not for Linux. 
+
+
 Install (安装步骤):
 
 ```bash
