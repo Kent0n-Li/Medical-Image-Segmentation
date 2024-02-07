@@ -27,10 +27,10 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="nnunet" id="nnunet">
-                                    <label class="form-check-label" for="nnunet">nnUNet</label>
-                                </div>
+<!--                                <div class="form-check">-->
+<!--                                    <input class="form-check-input" type="checkbox" value="nnunet" id="nnunet">-->
+<!--                                    <label class="form-check-label" for="nnunet">nnUNet</label>-->
+<!--                                </div>-->
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="nnsam" id="nnsam">
                                     <label class="form-check-label" for="nnsam">nnSAM</label>
@@ -59,16 +59,16 @@
                                     <input class="form-check-input" type="checkbox" value="r2unet" id="r2unet">
                                     <label class="form-check-label" for="r2unet">R2UNet</label>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="nnunet3d" id="nnunet3d">
-                                    <label class="form-check-label" for="nnunet3d">nnUNet (3D)</label>
-                                </div>
+<!--                                <div class="form-check">-->
+<!--                                    <input class="form-check-input" type="checkbox" value="nnunet3d" id="nnunet3d">-->
+<!--                                    <label class="form-check-label" for="nnunet3d">nnUNet (3D)</label>-->
+<!--                                </div>-->
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="yournet" id="yournet">
                                     <label class="form-check-label" for="yournet">Your Network</label>
                                 </div>
-                                
-                                
+
+
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -104,7 +104,7 @@
                             <label for="testing_label_path" class="form-label">Testing Label Path</label>
                             <input type="text" class="form-control" id="testing_label_path">
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="image-size" class="form-label">Select Image Size</label>
                             <select class="form-control" id="image-size">
@@ -123,7 +123,7 @@
                             <label for="dataset_name" class="form-label">Dataset Name</label>
                             <input type="text" class="form-control" id="dataset_name">
                         </div>
-                        </div>                 
+                        </div>
                         <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" id="import-dataset-button" class="btn btn-primary">Import Dataset</button>
@@ -131,22 +131,22 @@
                     </div>
                     </div>
                 </div>
-                
 
-                
-                       
-  
+
+
+
+
 
                 <div class="mb-3">
                     <label for="dataset" class="form-label">Select Dataset</label>
                     <select class="form-control" id="dataset">
                     </select>
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="model" class="form-label">Select Model</label>
                     <select class="form-control" id="model">
-                        <option value="nnunet">nnUNet</option>
+<!--                        <option value="nnunet">nnUNet</option>-->
                         <option value="nnsam">nnSAM</option>
                         <option value="unet">UNet</option>
                         <option value="transunet">TransUNet</option>
@@ -154,7 +154,7 @@
                         <option value="unetpp">UNet++</option>
                         <option value="attunet">AttentionUNet</option>
                         <option value="r2unet">R2UNet</option>
-                        <option value="nnunet3d">nnUNet (3D)</option>
+<!--                        <option value="nnunet3d">nnUNet (3D)</option>-->
                         <option value="yournet">Your Network</option>
                         <!-- Add more models here -->
                     </select>

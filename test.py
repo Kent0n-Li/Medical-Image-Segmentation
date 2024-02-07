@@ -28,15 +28,15 @@ import gdown
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
-                 
+
 parser.add_argument('--max_iterations', type=int,
                     default=30000, help='maximum epoch number to train')
 parser.add_argument('--max_epochs', type=int,
                     default=200, help='maximum epoch number to train')
 parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
-parser.add_argument('--deterministic', type=int,  default=1,
+parser.add_argument('--deterministic', type=int, default=1,
                     help='whether use deterministic training')
-parser.add_argument('--base_lr', type=float,  default=0.01,
+parser.add_argument('--base_lr', type=float, default=0.01,
                     help='segmentation network learning rate')
 parser.add_argument('--img_size', type=int,
                     default=224, help='input patch size of network input')
@@ -45,8 +45,8 @@ parser.add_argument('--seed', type=int,
 parser.add_argument('--zip', action='store_true', help='use zipped dataset instead of folder dataset')
 parser.add_argument('--cache-mode', type=str, default='part', choices=['no', 'full', 'part'],
                     help='no: no cache, '
-                            'full: cache all data, '
-                            'part: sharding the dataset into nonoverlapping pieces and only cache one piece')
+                         'full: cache all data, '
+                         'part: sharding the dataset into nonoverlapping pieces and only cache one piece')
 parser.add_argument('--resume', help='resume from checkpoint')
 parser.add_argument('--accumulation-steps', type=int, help="gradient accumulation steps")
 parser.add_argument('--use-checkpoint', action='store_true',
@@ -64,16 +64,17 @@ def calculate_dice(pred, gt):
     # 用于计算 Dice 相似系数
     intersection = np.logical_and(pred, gt).sum()
     union = pred.sum() + gt.sum()
-    
+
     if union == 0:
         return 1.0  # 如果两者都是空集，Dice 应为 1
-    
+
     return 2 * intersection / union
+
 
 def calculate_metric_percase(pred, gt):
     pred[pred > 0] = 1
     gt[gt > 0] = 1
-    
+
     if pred.sum() > 0 and gt.sum() > 0:
         dice = calculate_dice(pred, gt)
         return dice
@@ -81,10 +82,9 @@ def calculate_metric_percase(pred, gt):
         return 1
     else:
         return 0
-    
 
-def download_model(url,destination):
 
+def download_model(url, destination):
     chunk_size = 8192  # Size of each chunk in bytes
 
     response = requests.get(url, stream=True)
@@ -98,9 +98,8 @@ def download_model(url,destination):
         print("Failed to download file. Status code:", response.status_code)
 
 
-
 class DynamicDataset(data.Dataset):
-    def __init__(self, img_path, gt_path, data_end_json, size = None):
+    def __init__(self, img_path, gt_path, data_end_json, size=None):
 
         with open(data_end_json) as f:
             self.file_end = json.load(f)['file_ending']
@@ -110,37 +109,35 @@ class DynamicDataset(data.Dataset):
         self.img_path = img_path
         self.gt_path = gt_path
 
-
     def __getitem__(self, item):
         imagename = self.img_name[item]
         img_path = os.path.join(self.img_path, imagename)
 
-
         if self.file_end in ['.png', '.bmp', '.tif']:
             npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
             npimg = np.array(npimg)
-            
+
         elif self.file_end in ['.gz', '.nrrd', '.mha', '.nii.gz', '.nii']:
             npimg = sitk.ReadImage(img_path)
             npimg = sitk.GetArrayFromImage(npimg)
-        
+
         if npimg.ndim == 2:
             npimg = np.expand_dims(npimg, axis=0)
         elif npimg.ndim == 3:
             npimg = npimg.transpose((2, 0, 1))
-            
-        
+
         ori_shape = npimg.shape
         npimg = torch.from_numpy(npimg)
-    
+
         if self.size is not None:
-            resize = transforms.Resize(size=(self.size,self.size), antialias=None)
-            npimg = resize(npimg)            
+            resize = transforms.Resize(size=(self.size, self.size), antialias=None)
+            npimg = resize(npimg)
         else:
-            adapt_size = transforms.Resize(size=(int(npimg.shape[1]/64 + 1)*64, int(npimg.shape[2]/64+1)*64), antialias=None)
+            adapt_size = transforms.Resize(size=(int(npimg.shape[1] / 64 + 1) * 64, int(npimg.shape[2] / 64 + 1) * 64),
+                                           antialias=None)
             npimg = adapt_size(npimg)
-            
-        return npimg, imagename.replace('_0000',''), ori_shape
+
+        return npimg, imagename.replace('_0000', ''), ori_shape
 
     def __len__(self):
         size = int(len(self.img_name))
@@ -159,28 +156,27 @@ if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if device.type == 'cuda':
         total_memory = torch.cuda.get_device_properties(device).total_memory / (1024 ** 3)  # bytes to GB
-        args.batch_size = int(total_memory / 10)*2
+        args.batch_size = int(total_memory / 10) * 2
     else:
         args.batch_size = 2
-    
+
     fold = os.environ['current_fold']
 
-    data_json_file = os.path.join(os.environ['nnUNet_preprocessed'], os.environ['current_dataset'], 'dataset.json')
-    split_json_path = os.path.join(os.environ['nnUNet_preprocessed'], os.environ['current_dataset'], 'splits_final.json')
-    base_json_path = os.path.join(os.environ['nnUNet_preprocessed'], os.environ['current_dataset'])
-    output_folder_test = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], 'nnUNetTrainer__nnUNetPlans__2d', 'test_pred')
-    output_folder_5fold = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], 'nnUNetTrainer__nnUNetPlans__2d', f'fold_{fold}')
-    
+    data_json_file = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'dataset.json')
+    # split_json_path = os.path.join(os.environ['nnUNet_preprocessed'], os.environ['current_dataset'], 'splits_final.json')
+    # base_json_path = os.path.join(os.environ['nnUNet_preprocessed'], os.environ['current_dataset'])
+    output_folder_test = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
+                                      os.environ['current_dataset'], 'nnUNetTrainer__nnUNetPlans__2d', 'test_pred')
+    output_folder_5fold = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
+                                       os.environ['current_dataset'], 'nnUNetTrainer__nnUNetPlans__2d', f'fold_{fold}')
+
     os.makedirs(output_folder_test, exist_ok=True)
     os.makedirs(output_folder_5fold, exist_ok=True)
 
-
-    imageTr_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTr')
-    labelTr_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr')
-    imageTs_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
-    labelTs_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs')
-
-
+    imageTr_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTr')
+    labelTr_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr')
+    imageTs_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
+    labelTs_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs')
 
     with open(data_json_file) as f:
         json_data = json.load(f)
@@ -203,7 +199,8 @@ if __name__ == "__main__":
         config_vit.n_skip = 3
         config_vit.pretrained_path = './networks/R50+ViT-B_16.npz'
         if vit_name.find('R50') != -1:
-            config_vit.patches.grid = (int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
+            config_vit.patches.grid = (
+            int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
         model = ViT_seg(config_vit, img_size=224, num_classes=num_classes).cuda()
 
         model.load_from(weights=np.load('networks/R50+ViT-B_16.npz'))
@@ -231,7 +228,7 @@ if __name__ == "__main__":
         raise NotImplementedError(f"model_name {model_name} not supported")
 
     model.load_state_dict(torch.load(weights_path))
-    
+
     logging.basicConfig(filename="logging.txt", level=logging.INFO,
                         format='[%(asctime)s.%(msecs)03d] %(message)s', datefmt='%H:%M:%S')
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
@@ -239,11 +236,11 @@ if __name__ == "__main__":
     base_lr = args.base_lr
     batch_size = args.batch_size * args.n_gpu
     if model_name == 'swinunet' or model_name == 'transunet':
-        db_test = DynamicDataset(img_path = imageTs_path , gt_path = labelTs_path, data_end_json = data_json_file, size = args.img_size )
+        db_test = DynamicDataset(img_path=imageTs_path, gt_path=labelTs_path, data_end_json=data_json_file,
+                                 size=args.img_size)
     else:
-        db_test = DynamicDataset(img_path = imageTs_path , gt_path = labelTs_path, data_end_json = data_json_file)
+        db_test = DynamicDataset(img_path=imageTs_path, gt_path=labelTs_path, data_end_json=data_json_file)
 
-    
     with open(data_json_file) as f:
         file_end = json.load(f)['file_ending']
 
@@ -254,7 +251,7 @@ if __name__ == "__main__":
     ce_loss = CrossEntropyLoss()
     dice_loss = DiceLoss(num_classes)
     optimizer = optim.SGD(model.parameters(), lr=base_lr, momentum=0.9, weight_decay=0.0001)
-    
+
     best_performance = 0.0
     val_dice_scores = []
     epoch_numbers = []
@@ -265,10 +262,11 @@ if __name__ == "__main__":
 
         outputs = model(image_batch)
 
-        outputs = torch.nn.functional.interpolate(outputs, size=(ori_shape[-2], ori_shape[-1]), mode='bilinear', align_corners=True)
+        outputs = torch.nn.functional.interpolate(outputs, size=(ori_shape[-2], ori_shape[-1]), mode='bilinear',
+                                                  align_corners=True)
         pred = outputs.data.max(1)[1].squeeze_(1).squeeze_(0).cpu().numpy()
         pred = pred.astype(np.uint8)
-        
+
         if file_end in ['.png', '.bmp', '.tif']:
             pred_img = Image.fromarray(pred)
             pred_img.save(os.path.join(output_folder_test, img_name[0]))

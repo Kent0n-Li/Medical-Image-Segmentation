@@ -30,15 +30,15 @@ import matplotlib.pyplot as plt
 import shutil
 
 parser = argparse.ArgumentParser()
-                 
+
 parser.add_argument('--max_iterations', type=int,
                     default=30000, help='maximum epoch number to train')
 parser.add_argument('--max_epochs', type=int,
                     default=200, help='maximum epoch number to train')
 parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
-parser.add_argument('--deterministic', type=int,  default=1,
+parser.add_argument('--deterministic', type=int, default=1,
                     help='whether use deterministic training')
-parser.add_argument('--base_lr', type=float,  default=0.01,
+parser.add_argument('--base_lr', type=float, default=0.01,
                     help='segmentation network learning rate')
 parser.add_argument('--img_size', type=int,
                     default=224, help='input patch size of network input')
@@ -49,8 +49,8 @@ parser.add_argument('--seed', type=int,
 parser.add_argument('--zip', action='store_true', help='use zipped dataset instead of folder dataset')
 parser.add_argument('--cache-mode', type=str, default='part', choices=['no', 'full', 'part'],
                     help='no: no cache, '
-                            'full: cache all data, '
-                            'part: sharding the dataset into nonoverlapping pieces and only cache one piece')
+                         'full: cache all data, '
+                         'part: sharding the dataset into nonoverlapping pieces and only cache one piece')
 parser.add_argument('--resume', help='resume from checkpoint')
 parser.add_argument('--accumulation-steps', type=int, help="gradient accumulation steps")
 parser.add_argument('--use-checkpoint', action='store_true',
@@ -68,16 +68,17 @@ def calculate_dice(pred, gt):
     # 用于计算 Dice 相似系数
     intersection = np.logical_and(pred, gt).sum()
     union = pred.sum() + gt.sum()
-    
+
     if union == 0:
         return 1.0  # 如果两者都是空集，Dice 应为 1
-    
+
     return 2 * intersection / union
+
 
 def calculate_metric_percase(pred, gt):
     pred[pred > 0] = 1
     gt[gt > 0] = 1
-    
+
     if pred.sum() > 0 and gt.sum() > 0:
         dice = calculate_dice(pred, gt)
         return dice
@@ -85,10 +86,9 @@ def calculate_metric_percase(pred, gt):
         return 1
     else:
         return 0
-    
 
-def download_model(url,destination):
 
+def download_model(url, destination):
     chunk_size = 8192  # Size of each chunk in bytes
 
     response = requests.get(url, stream=True)
@@ -102,31 +102,32 @@ def download_model(url,destination):
         print("Failed to download file. Status code:", response.status_code)
 
 
-
 class DynamicDataset(data.Dataset):
-    def __init__(self, img_path, gt_path, data_end_json, data_split_json, fold_num, train_or_valid ,size = None):
+    def __init__(self, img_path, gt_path, data_end_json, data_split_json, fold_num, train_or_valid, size=None):
 
         with open(data_end_json) as f:
             self.file_end = json.load(f)['file_ending']
 
-        with open(data_split_json) as f:
-           json_data = json.load(f)[int(fold_num)]
+        # with open(data_split_json) as f:
+        #    json_data = json.load(f)[int(fold_num)]
 
-        if train_or_valid == 'train':
-            self.img_name = json_data['train']
-        elif train_or_valid == 'val':
-            self.img_name = json_data['val']
-        
+        # print(img_path)s
+
+        self.img_name = os.listdir(img_path)
+
         self.size = size
         self.img_path = img_path
         self.gt_path = gt_path
 
-
     def __getitem__(self, item):
         imagename = self.img_name[item]
-        img_path = os.path.join(self.img_path, imagename+'_0000' + self.file_end)
-        gt_path = os.path.join(self.gt_path, imagename + self.file_end)
 
+        img_path = os.path.join(self.img_path, imagename)
+        gt_path = os.path.join(self.gt_path, imagename)
+
+        # print(imagename)
+        # print(img_path)
+        # print(gt_path)
 
         if self.file_end in ['.png', '.bmp', '.tif']:
             npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
@@ -144,20 +145,19 @@ class DynamicDataset(data.Dataset):
             npimg = np.expand_dims(npimg, axis=0)
         elif npimg.ndim == 3:
             npimg = npimg.transpose((2, 0, 1))
-            
-        
+
         ori_shape = npimg.shape
         npgt = np.expand_dims(npgt, axis=0)
         npimg = torch.from_numpy(npimg)
         npgt = torch.from_numpy(npgt)
 
-
         if self.size is not None:
-            resize = transforms.Resize(size=(self.size,self.size), antialias=None)
+            resize = transforms.Resize(size=(self.size, self.size), antialias=None)
             npimg = resize(npimg)
             npgt = resize(npgt)
         else:
-            adapt_size = transforms.Resize(size=(int(npimg.shape[1]/64 + 1)*64, int(npimg.shape[2]/64+1)*64), antialias=None)
+            adapt_size = transforms.Resize(size=(int(npimg.shape[1] / 64 + 1) * 64, int(npimg.shape[2] / 64 + 1) * 64),
+                                           antialias=None)
             npimg = adapt_size(npimg)
             npgt = adapt_size(npgt)
 
@@ -167,8 +167,6 @@ class DynamicDataset(data.Dataset):
     def __len__(self):
         size = int(len(self.img_name))
         return size
-    
-
 
 
 if __name__ == "__main__":
@@ -180,9 +178,6 @@ if __name__ == "__main__":
         os.environ['nnUNet_raw'] = 'E:/nnSAM/nnUNET/nnUNet_raw'
         os.environ['nnUNet_results'] = 'E:/nnSAM/nnUNET/nnUNet_results'
         os.environ['MODEL_NAME'] = 'swinunet'
-    
-
-
 
     cudnn.benchmark = False
     cudnn.deterministic = True
@@ -193,29 +188,25 @@ if __name__ == "__main__":
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    
     fold = os.environ['current_fold']
 
-    data_json_file = os.path.join(os.environ['nnUNet_preprocessed'], os.environ['current_dataset'], 'dataset.json')
-    split_json_path = os.path.join(os.environ['nnUNet_preprocessed'], os.environ['current_dataset'], 'splits_final.json')
-    base_json_path = os.path.join(os.environ['nnUNet_preprocessed'], os.environ['current_dataset'])
-    output_folder_test = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], 'nnUNetTrainer__nnUNetPlans__2d', 'test_pred')
-    output_folder_5fold = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], 'nnUNetTrainer__nnUNetPlans__2d', f'fold_{fold}')
-    
+    data_json_file = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'dataset.json')
+    split_json_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'splits_final.json')
+    base_json_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'])
+    output_folder_test = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
+                                      os.environ['current_dataset'], 'nnUNetTrainer__nnUNetPlans__2d', 'test_pred')
+    output_folder_5fold = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
+                                       os.environ['current_dataset'], 'nnUNetTrainer__nnUNetPlans__2d', f'fold_{fold}')
 
-
-    imageTr_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTr')
-    labelTr_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr')
-    imageTs_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
-    labelTs_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs')
-
-
+    imageTr_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTr')
+    labelTr_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr')
+    imageTs_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
+    labelTs_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs')
 
     with open(data_json_file) as f:
         json_data = json.load(f)
         num_classes = len(json_data['labels'])
         in_channels = len(json_data['channel_names'])
-
 
     model_name = os.environ['MODEL_NAME']
     print(model_name)
@@ -234,7 +225,8 @@ if __name__ == "__main__":
         if not os.path.exists(config_vit.pretrained_path):
             download_model(download_url, config_vit.pretrained_path)
         if vit_name.find('R50') != -1:
-            config_vit.patches.grid = (int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
+            config_vit.patches.grid = (
+            int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
         model = ViT_seg(config_vit, img_size=224, num_classes=num_classes).cuda()
 
         model.load_from(weights=np.load('networks/R50+ViT-B_16.npz'))
@@ -245,12 +237,12 @@ if __name__ == "__main__":
         args.opts = None
         swin_config = get_swin_config(args)
         model = SwinUnet(swin_config, img_size=224, num_classes=num_classes).cuda()
-        #url = "https://drive.google.com/uc?id=1TyMf0_uvaxyacMmVzRfqvLLAWSOE2bJR"
+        # url = "https://drive.google.com/uc?id=1TyMf0_uvaxyacMmVzRfqvLLAWSOE2bJR"
         url = 'https://huggingface.co/kenton-li/nnSAM/resolve/main/swin_tiny_patch4_window7_224.pth'
         output = swin_config.MODEL.PRETRAIN_CKPT
         if not os.path.exists(output):
             download_model(url, output)
-            #gdown.download(url, output, quiet=False)
+            # gdown.download(url, output, quiet=False)
         model.load_from(swin_config)
 
     elif model_name == 'unetpp':
@@ -268,8 +260,6 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError(f"model_name {model_name} not supported")
 
-    
-    
     logging.basicConfig(filename="logging.txt", level=logging.INFO,
                         format='[%(asctime)s.%(msecs)03d] %(message)s', datefmt='%H:%M:%S')
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
@@ -277,11 +267,17 @@ if __name__ == "__main__":
     base_lr = args.base_lr
     batch_size = args.batch_size * args.n_gpu
     if model_name == 'swinunet' or model_name == 'transunet':
-        db_train = DynamicDataset(img_path = imageTr_path , gt_path = labelTr_path, data_end_json = data_json_file , data_split_json=split_json_path, fold_num =fold, train_or_valid='train' , size = args.img_size )
-        db_val = DynamicDataset(img_path = imageTr_path , gt_path = labelTr_path, data_end_json = data_json_file , data_split_json=split_json_path, fold_num =fold, train_or_valid='val' , size = args.img_size )
+        db_train = DynamicDataset(img_path=imageTr_path, gt_path=labelTr_path, data_end_json=data_json_file,
+                                  data_split_json=split_json_path, fold_num=fold, train_or_valid='train',
+                                  size=args.img_size)
+        db_val = DynamicDataset(img_path=imageTr_path, gt_path=labelTr_path, data_end_json=data_json_file,
+                                data_split_json=split_json_path, fold_num=fold, train_or_valid='val',
+                                size=args.img_size)
     else:
-        db_train = DynamicDataset(img_path = imageTr_path , gt_path = labelTr_path, data_end_json = data_json_file , data_split_json=split_json_path, train_or_valid='train', fold_num =fold)
-        db_val = DynamicDataset(img_path = imageTr_path , gt_path = labelTr_path, data_end_json = data_json_file , data_split_json=split_json_path, train_or_valid='val', fold_num =fold)
+        db_train = DynamicDataset(img_path=imageTr_path, gt_path=labelTr_path, data_end_json=data_json_file,
+                                  data_split_json=split_json_path, train_or_valid='train', fold_num=fold)
+        db_val = DynamicDataset(img_path=imageTr_path, gt_path=labelTr_path, data_end_json=data_json_file,
+                                data_split_json=split_json_path, train_or_valid='val', fold_num=fold)
 
     trainloader = DataLoader(db_train, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
     validloader = DataLoader(db_val, batch_size=1, shuffle=False, num_workers=2, pin_memory=True)
@@ -296,7 +292,7 @@ if __name__ == "__main__":
     max_iterations = args.max_epochs * len(trainloader)  # max_epoch = max_iterations // len(trainloader) + 1
     logging.info("{} iterations per epoch. {} max iterations ".format(len(trainloader), max_iterations))
     best_performance = 0.0
-    
+
     with open(data_json_file) as f:
         file_end = json.load(f)['file_ending']
 
@@ -315,7 +311,6 @@ if __name__ == "__main__":
 
             outputs = model(image_batch)
 
-            
             loss_ce = ce_loss(outputs, label_batch[:].long())
             loss_dice = dice_loss(outputs, label_batch, softmax=True)
             loss = 0.5 * loss_ce + 0.5 * loss_dice
@@ -328,22 +323,24 @@ if __name__ == "__main__":
 
             iter_num = iter_num + 1
 
-            #logging.info('iteration %d : loss : %f' % (iter_num, loss.item()))
+            # logging.info('iteration %d : loss : %f' % (iter_num, loss.item()))
 
-
-        save_interval = 5  
+        save_interval = 5
         if (epoch_num) % save_interval == 0:
             metric_list = []
             for i_batch, (img, label, img_name, ori_shape) in enumerate(validloader):
                 image_batch, label_batch = img, label
-                image_batch= image_batch.cuda()
+                image_batch = image_batch.cuda()
                 image_batch = image_batch.float()
                 outputs = model(image_batch)
 
                 outputs = torch.nn.functional.interpolate(outputs, size=(ori_shape[-2], ori_shape[-1]), mode='nearest')
                 pred = outputs.data.max(1)[1].squeeze_(1).squeeze_(0).cpu().numpy().astype(np.uint8)
 
-                label_batch = torch.nn.functional.interpolate(label_batch.unsqueeze(0), size=(ori_shape[-2], ori_shape[-1]), mode='nearest').squeeze_(0).squeeze_(0).cpu().numpy().astype(np.uint8)
+                label_batch = torch.nn.functional.interpolate(label_batch.unsqueeze(0),
+                                                              size=(ori_shape[-2], ori_shape[-1]),
+                                                              mode='nearest').squeeze_(0).squeeze_(
+                    0).cpu().numpy().astype(np.uint8)
 
                 os.makedirs(os.path.join(output_folder_5fold, 'epoch_result'), exist_ok=True)
                 if file_end in ['.png', '.bmp', '.tif']:
@@ -352,10 +349,9 @@ if __name__ == "__main__":
                 elif file_end in ['.gz', '.nrrd', '.mha', '.nii.gz', '.nii']:
                     pred_img = sitk.GetImageFromArray(pred)
                     sitk.WriteImage(pred_img, os.path.join(output_folder_5fold, 'epoch_result', img_name[0]))
-            
-                
+
                 each_metric = []
-                
+
                 for i in range(1, num_classes):
                     each_metric.append(calculate_metric_percase(pred == i, label_batch == i))
 
@@ -371,22 +367,21 @@ if __name__ == "__main__":
 
             # Plot validation metrics
             plt.figure(figsize=(10, 10))
-            plt.title('Validation Dice Score over Epochs',fontsize=20)
-            plt.xlabel('Epochs',fontsize=20)
-            plt.ylabel('Dice Score',fontsize=20)
+            plt.title('Validation Dice Score over Epochs', fontsize=20)
+            plt.xlabel('Epochs', fontsize=20)
+            plt.ylabel('Dice Score', fontsize=20)
             plt.plot(epoch_numbers, val_dice_scores)
             plt.xticks(epoch_numbers)
             plt.savefig(os.path.join(output_folder_5fold, 'progress.png'))
-            
 
             if performance > best_performance:
                 best_performance = performance
                 save_mode_path = os.path.join(output_folder_5fold, 'checkpoint_final.pth')
                 torch.save(model.state_dict(), save_mode_path)
                 logging.info("save model to {}".format(save_mode_path))
-                
+
                 if os.path.exists(os.path.join(output_folder_5fold, 'validation_pred')):
                     shutil.rmtree(os.path.join(output_folder_5fold, 'validation_pred'))
-                    os.rename(os.path.join(output_folder_5fold, 'epoch_result'), os.path.join(output_folder_5fold, 'validation_pred')) 
-                    
-           
+                    os.rename(os.path.join(output_folder_5fold, 'epoch_result'),
+                              os.path.join(output_folder_5fold, 'validation_pred'))
+
