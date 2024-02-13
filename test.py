@@ -144,8 +144,9 @@ class DynamicDataset(data.Dataset):
         return size
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
+def test_model():
     cudnn.benchmark = False
     cudnn.deterministic = True
     random.seed(args.seed)

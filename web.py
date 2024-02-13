@@ -1,9 +1,7 @@
 import random
 
 from flask import Flask, request, jsonify, render_template
-import subprocess
-import threading
-from threading import Lock
+from multiprocessing import Process, Lock , Queue
 import os
 import psutil
 import sys
@@ -18,6 +16,9 @@ import webbrowser
 import cv2
 
 from scipy.spatial import cKDTree
+
+from test import test_model
+from train import train
 
 app = Flask(__name__)
 
@@ -137,11 +138,11 @@ def reader_thread(process, f):
         f.write(line)
 
 
-def run_command_async(command):
+def run_command_async(command, process_lock, batch_size=None, max_epochs=None, base_lr=None):
     global current_output, process_status, current_process
     try:
         with process_lock:
-
+            print("Starting run_command_async")
             if os.path.exists('static/progress.png'):
                 white_image = Image.new("RGB", (50, 50), "white")
                 white_image.save('static/progress.png')
@@ -152,26 +153,27 @@ def run_command_async(command):
             current_output = "Output: "
             process_status = 'running'
             env = os.environ.copy()
-
-            current_process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                               text=True, env=env)
+            if command.startswith('train'):
+                train(batch_size, max_epochs, base_lr)
+            elif command.startswith('test'):
+                test_model()
 
             print("Process started")
             with open(output_file, 'w') as f:
                 f.write("Process started")
                 f.flush()
-                for line in current_process.stdout:
-                    print(line)
-                    f.write(line)
-                    f.flush()
+                # for line in current_process.stdout:
+                #     print(line)
+                #     f.write(line)
+                #     f.flush()
 
         with process_lock:
             print("Process completed")
             process_status = 'completed'
             current_process = None
 
-
     except Exception as e:
+        print(f"An error occurred: {e}")
         with process_lock:
             process_status = 'not_started'
             current_process = None
@@ -262,6 +264,7 @@ def full_auto():
                     'model_name': model,
                     'dataset': dataset
                 })
+                print(response.json)
 
         return jsonify({"status": "Full auto completed successfully."})
 
@@ -506,7 +509,7 @@ def train_model():
     with process_lock:
         if process_status == 'running':
             return jsonify({'error': 'A command is already running'})
-        fold = os.environ['current_fold']
+        # fold = os.environ['current_fold']
 
         model_name = request.json.get('model_name', '')
         os.environ['MODEL_NAME'] = model_name
@@ -517,16 +520,21 @@ def train_model():
         totalEpochs = request.json.get('totalEpochs', '100')
         learningRate = request.json.get('learningRate', '0.01')
 
-        if os.environ['MODEL_NAME'] == 'nnsam':
-            dataset_id = dataset_id.split('_')[0].replace('Dataset', '')
-            complete_command = f"conda activate {conda_env} && nnUNetv2_train {dataset_id} 2d {fold}"
-
-        else:
-            complete_command = f"conda activate {conda_env} && python train.py --batch_size {batchSize} --max_epochs {totalEpochs} --base_lr {learningRate}"
+        complete_command = f"conda activate {conda_env} && python train.py --batch_size {batchSize} --max_epochs {totalEpochs} --base_lr {learningRate}"
+        batchSize = int(batchSize)
+        totalEpochs = int(totalEpochs)
+        learningRate = float(learningRate)
 
         print(complete_command)
+        # Status: conda activate nnsam & & python train.py - -batch_size 4 - -max_epochs 2 - -base_lr 0.01
+        # TODO convert it from command line to python code
+        # train_model(batch_size=batchSize, max_epochs=totalEpochs, base_lr=learningRate)
 
-        threading.Thread(target=run_command_async, args=(complete_command,)).start()
+        training_process = Process(target=run_command_async,
+                                   args=("train", process_lock, batchSize, totalEpochs, learningRate))
+        training_process.start()
+        print("Training process started")
+        # threading.Thread(target=run_command_async, args=(complete_command,)).start()
         return jsonify({'status': complete_command})
 
 
@@ -572,17 +580,24 @@ def run_test():
                                  nnUNetPlans, 'test_pred')
     os.makedirs(output_folder, exist_ok=True)
 
-    if os.environ['MODEL_NAME'] == 'nnunet' or os.environ['MODEL_NAME'] == 'nnsam':
-        complete_command = f"conda activate {conda_env} && nnUNetv2_predict -i {input_folder} -o {output_folder} -d {dataset_id} -c 2d -f {fold}"
-    elif os.environ['MODEL_NAME'] == 'nnunet3d':
-        complete_command = f"conda activate {conda_env} && nnUNetv2_predict -i {input_folder} -o {output_folder} -d {dataset_id} -c 3d_fullres -f {fold}"
-    else:
-        complete_command = f"conda activate {conda_env} && python test.py"
+    # if os.environ['MODEL_NAME'] == 'nnunet' or os.environ['MODEL_NAME'] == 'nnsam': complete_command = f"conda
+    # activate {conda_env} && nnUNetv2_predict -i {input_folder} -o {output_folder} -d {dataset_id} -c 2d -f {fold}"
+    # elif os.environ['MODEL_NAME'] == 'nnunet3d': complete_command = f"conda activate {conda_env} &&
+    # nnUNetv2_predict -i {input_folder} -o {output_folder} -d {dataset_id} -c 3d_fullres -f {fold}" else:
+
+    complete_command = f"conda activate {conda_env} && python test.py"
 
     print(input_folder)
 
     print(complete_command)
-    threading.Thread(target=run_command_async, args=(complete_command,)).start()
+    # conda activate nnsam & & python test.py
+    # Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234,
+    #           zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False,
+    #           amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=0)
+
+    # TODO convert it from command line to python code
+    # threading.Thread(target=run_command_async, args=(complete_command,)).start()
+    Process(target=run_command_async, args=("test", process_lock)).start()
 
     with process_lock:
         print(input_folder)
@@ -872,25 +887,25 @@ def edit_network():
 
 @app.route('/get_output', methods=['GET'])
 def get_output():
-    nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__2d'
-    if os.environ['MODEL_NAME'] == 'nnunet3d':
-        nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__3d_fullres'
-
-    dir_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-                            nnUNetPlans, 'fold_' + os.environ['current_fold'])
-
-    if os.environ['MODEL_NAME'] == 'nnunet3d':
-        dir_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-                                'nnUNetTrainer__nnUNetPlans__3d_fullres', 'fold_' + os.environ['current_fold'])
+    # nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__2d'
+    # if os.environ['MODEL_NAME'] == 'nnunet3d':
+    #     nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__3d_fullres'
+    #
+    # dir_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+    #                         nnUNetPlans, 'fold_' + os.environ['current_fold'])
+    #
+    # if os.environ['MODEL_NAME'] == 'nnunet3d':
+    #     dir_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+    #                             'nnUNetTrainer__nnUNetPlans__3d_fullres', 'fold_' + os.environ['current_fold'])
 
     try:
-        if os.path.exists(dir_path):
-            # output_file = find_latest_txt_file(dir_path)
-            progress_png = os.path.join(dir_path, 'progress.png')
-            try:
-                shutil.copy(progress_png, os.path.join('static', 'progress.png'))
-            except:
-                pass
+        # if os.path.exists(dir_path):
+        #     # output_file = find_latest_txt_file(dir_path)
+        #     progress_png = os.path.join(dir_path, 'progress.png')
+        #     try:
+        #         shutil.copy(progress_png, os.path.join('static', 'progress.png'))
+        #     except:
+        #         pass
         with open(output_file, "r") as f:
             lines = f.readlines()
             lines_to_read = lines if len(lines) < 50 else lines[-50:]
@@ -908,33 +923,16 @@ def get_status():
     return jsonify({'status': process_status})
 
 
-@app.route('/run_command', methods=['POST'])
-def run_command():
-    global process_status
-    with process_lock:
-        if process_status == 'running':
-            current_output = "Output: "
-            for line in current_process.stdout:
-                current_output += line
-            print(current_output)
-            return jsonify({'error': 'A command is already running'})
-
-        command = request.json.get('command', '')
-
-        complete_command = f"conda activate {conda_env} && {command}"
-        print(complete_command)
-
-        threading.Thread(target=run_command_async, args=(complete_command,)).start()
-        return jsonify({'status': complete_command})
-
-
 @app.route('/stop_command', methods=['POST'])
 def stop_command():
     global current_process
     if current_process:
         try:
             print("Terminating process...")
-            kill_process_tree(current_process.pid)
+            # kill_process_tree(current_process.pid)
+            # current_process = None
+            current_process.terminate()
+            current_process.join()
             current_process = None
             return jsonify({'status': 'Command stopped'})
         except:

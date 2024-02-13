@@ -25,7 +25,6 @@ import torch.nn as nn
 import torch.optim as optim
 from networks.swin_config import get_swin_config
 import requests
-import gdown
 import matplotlib.pyplot as plt
 import shutil
 
@@ -169,8 +168,8 @@ class DynamicDataset(data.Dataset):
         return size
 
 
-if __name__ == "__main__":
-
+# if __name__ == "__main__":
+def train(batch_size=4, max_epochs=200, base_lr=0.01, seed=1234, n_gpu=1, img_size=224, model_name='swinunet'):
     if os.environ.get('current_fold') is None:
         os.environ['current_fold'] = '0'
         os.environ['current_dataset'] = 'Dataset023_21'
@@ -178,6 +177,13 @@ if __name__ == "__main__":
         os.environ['nnUNet_raw'] = 'E:/nnSAM/nnUNET/nnUNet_raw'
         os.environ['nnUNet_results'] = 'E:/nnSAM/nnUNET/nnUNet_results'
         os.environ['MODEL_NAME'] = 'swinunet'
+
+    args.seed = seed
+    args.img_size = img_size
+    args.max_epochs = max_epochs
+    args.base_lr = base_lr
+    args.batch_size = batch_size
+    args.n_gpu = n_gpu
 
     cudnn.benchmark = False
     cudnn.deterministic = True
@@ -192,7 +198,7 @@ if __name__ == "__main__":
 
     data_json_file = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'dataset.json')
     split_json_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'splits_final.json')
-    base_json_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'])
+    # base_json_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'])
     output_folder_test = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
                                       os.environ['current_dataset'], 'nnUNetTrainer__nnUNetPlans__2d', 'test_pred')
     output_folder_5fold = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
@@ -226,11 +232,10 @@ if __name__ == "__main__":
             download_model(download_url, config_vit.pretrained_path)
         if vit_name.find('R50') != -1:
             config_vit.patches.grid = (
-            int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
+                int(args.img_size / args.vit_patches_size), int(args.img_size / args.vit_patches_size))
         model = ViT_seg(config_vit, img_size=224, num_classes=num_classes).cuda()
 
         model.load_from(weights=np.load('networks/R50+ViT-B_16.npz'))
-
 
     elif model_name == 'swinunet':
         args.cfg = './networks/swin_tiny_patch4_window7_224_lite.yaml'
@@ -384,4 +389,3 @@ if __name__ == "__main__":
                     shutil.rmtree(os.path.join(output_folder_5fold, 'validation_pred'))
                     os.rename(os.path.join(output_folder_5fold, 'epoch_result'),
                               os.path.join(output_folder_5fold, 'validation_pred'))
-
