@@ -31,7 +31,7 @@ pip install timm
 pip install git+https://github.com/Kent0n-Li/nnSAM.git
 
 git clone https://github.com/Kent0n-Li/Medical-Image-Segmentation.git
-cd Medical-Image-Segmentation-Benchmark
+cd Medical-Image-Segmentation
 pip install -r requirements.txt
 ```
 
