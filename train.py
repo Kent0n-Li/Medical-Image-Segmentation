@@ -1,5 +1,4 @@
 import argparse
-import logging
 import os
 import random
 import numpy as np
@@ -20,47 +19,16 @@ from torch.nn.modules.loss import CrossEntropyLoss
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from utils import DiceLoss
-import sys
 import torch.nn as nn
 import torch.optim as optim
 from networks.swin_config import get_swin_config
 import requests
 import matplotlib.pyplot as plt
 import shutil
+from logHelper import setup_logger
+from config import output_file, parse_args
 
-parser = argparse.ArgumentParser()
-
-parser.add_argument('--max_iterations', type=int,
-                    default=30000, help='maximum epoch number to train')
-parser.add_argument('--max_epochs', type=int,
-                    default=200, help='maximum epoch number to train')
-parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
-parser.add_argument('--deterministic', type=int, default=1,
-                    help='whether use deterministic training')
-parser.add_argument('--base_lr', type=float, default=0.01,
-                    help='segmentation network learning rate')
-parser.add_argument('--img_size', type=int,
-                    default=224, help='input patch size of network input')
-parser.add_argument('--batch_size', type=int,
-                    default=4, help='Batch Size')
-parser.add_argument('--seed', type=int,
-                    default=1234, help='random seed')
-parser.add_argument('--zip', action='store_true', help='use zipped dataset instead of folder dataset')
-parser.add_argument('--cache-mode', type=str, default='part', choices=['no', 'full', 'part'],
-                    help='no: no cache, '
-                         'full: cache all data, '
-                         'part: sharding the dataset into nonoverlapping pieces and only cache one piece')
-parser.add_argument('--resume', help='resume from checkpoint')
-parser.add_argument('--accumulation-steps', type=int, help="gradient accumulation steps")
-parser.add_argument('--use-checkpoint', action='store_true',
-                    help="whether to use gradient checkpointing to save memory")
-parser.add_argument('--amp-opt-level', type=str, default='O1', choices=['O0', 'O1', 'O2'],
-                    help='mixed precision opt level, if O0, no amp is used')
-parser.add_argument('--tag', help='tag of experiment')
-parser.add_argument('--eval', action='store_true', help='Perform evaluation only')
-parser.add_argument('--throughput', action='store_true', help='Test throughput only')
-
-args = parser.parse_args()
+args = parse_args(type='train')
 
 
 def calculate_dice(pred, gt):
@@ -102,31 +70,20 @@ def download_model(url, destination):
 
 
 class DynamicDataset(data.Dataset):
-    def __init__(self, img_path, gt_path, data_end_json, data_split_json, fold_num, train_or_valid, size=None):
+    def __init__(self, img_path, gt_path, data_end_json, size=None):
 
         with open(data_end_json) as f:
             self.file_end = json.load(f)['file_ending']
 
-        # with open(data_split_json) as f:
-        #    json_data = json.load(f)[int(fold_num)]
-
-        # print(img_path)s
-
         self.img_name = os.listdir(img_path)
-
         self.size = size
         self.img_path = img_path
         self.gt_path = gt_path
 
     def __getitem__(self, item):
         imagename = self.img_name[item]
-
         img_path = os.path.join(self.img_path, imagename)
         gt_path = os.path.join(self.gt_path, imagename)
-
-        # print(imagename)
-        # print(img_path)
-        # print(gt_path)
 
         if self.file_end in ['.png', '.bmp', '.tif']:
             npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
@@ -265,24 +222,22 @@ def train(batch_size=4, max_epochs=200, base_lr=0.01, seed=1234, n_gpu=1, img_si
     else:
         raise NotImplementedError(f"model_name {model_name} not supported")
 
-    logging.basicConfig(filename="logging.txt", level=logging.INFO,
-                        format='[%(asctime)s.%(msecs)03d] %(message)s', datefmt='%H:%M:%S')
-    logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-    logging.info(str(args))
+    # logging.basicConfig(filename="logging.txt", level=logging.INFO,
+    #                     format='[%(asctime)s.%(msecs)03d] %(message)s', datefmt='%H:%M:%S')
+    # logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+    logger = setup_logger("training_logger", output_file=output_file)
+    logger.info("Process started")
+    logger.info(str(args))
     base_lr = args.base_lr
     batch_size = args.batch_size * args.n_gpu
     if model_name == 'swinunet' or model_name == 'transunet':
         db_train = DynamicDataset(img_path=imageTr_path, gt_path=labelTr_path, data_end_json=data_json_file,
-                                  data_split_json=split_json_path, fold_num=fold, train_or_valid='train',
                                   size=args.img_size)
         db_val = DynamicDataset(img_path=imageTr_path, gt_path=labelTr_path, data_end_json=data_json_file,
-                                data_split_json=split_json_path, fold_num=fold, train_or_valid='val',
                                 size=args.img_size)
     else:
-        db_train = DynamicDataset(img_path=imageTr_path, gt_path=labelTr_path, data_end_json=data_json_file,
-                                  data_split_json=split_json_path, train_or_valid='train', fold_num=fold)
-        db_val = DynamicDataset(img_path=imageTr_path, gt_path=labelTr_path, data_end_json=data_json_file,
-                                data_split_json=split_json_path, train_or_valid='val', fold_num=fold)
+        db_train = DynamicDataset(img_path=imageTr_path, gt_path=labelTr_path, data_end_json=data_json_file)
+        db_val = DynamicDataset(img_path=imageTr_path, gt_path=labelTr_path, data_end_json=data_json_file)
 
     trainloader = DataLoader(db_train, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
     validloader = DataLoader(db_val, batch_size=1, shuffle=False, num_workers=2, pin_memory=True)
@@ -295,7 +250,7 @@ def train(batch_size=4, max_epochs=200, base_lr=0.01, seed=1234, n_gpu=1, img_si
     iter_num = 0
     max_epoch = args.max_epochs
     max_iterations = args.max_epochs * len(trainloader)  # max_epoch = max_iterations // len(trainloader) + 1
-    logging.info("{} iterations per epoch. {} max iterations ".format(len(trainloader), max_iterations))
+    logger.info("{} iterations per epoch. {} max iterations ".format(len(trainloader), max_iterations))
     best_performance = 0.0
 
     with open(data_json_file) as f:
@@ -328,7 +283,7 @@ def train(batch_size=4, max_epochs=200, base_lr=0.01, seed=1234, n_gpu=1, img_si
 
             iter_num = iter_num + 1
 
-            # logging.info('iteration %d : loss : %f' % (iter_num, loss.item()))
+            # logger.info('iteration %d : loss : %f' % (iter_num, loss.item()))
 
         save_interval = 5
         if (epoch_num) % save_interval == 0:
@@ -368,7 +323,7 @@ def train(batch_size=4, max_epochs=200, base_lr=0.01, seed=1234, n_gpu=1, img_si
             val_dice_scores.append(performance)
             epoch_numbers.append(epoch_num)
 
-            logging.info('epoch %d : mean_dice : %f' % (epoch_num, performance))
+            logger.info('epoch %d : mean_dice : %f' % (epoch_num, performance))
 
             # Plot validation metrics
             plt.figure(figsize=(10, 10))
@@ -383,9 +338,11 @@ def train(batch_size=4, max_epochs=200, base_lr=0.01, seed=1234, n_gpu=1, img_si
                 best_performance = performance
                 save_mode_path = os.path.join(output_folder_5fold, 'checkpoint_final.pth')
                 torch.save(model.state_dict(), save_mode_path)
-                logging.info("save model to {}".format(save_mode_path))
+                logger.info("save model to {}".format(save_mode_path))
 
                 if os.path.exists(os.path.join(output_folder_5fold, 'validation_pred')):
                     shutil.rmtree(os.path.join(output_folder_5fold, 'validation_pred'))
                     os.rename(os.path.join(output_folder_5fold, 'epoch_result'),
                               os.path.join(output_folder_5fold, 'validation_pred'))
+
+    logger.info("Training Process finished")

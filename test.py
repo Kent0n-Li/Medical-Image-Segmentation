@@ -24,40 +24,41 @@ import torch.nn as nn
 import torch.optim as optim
 from networks.swin_config import get_swin_config
 import requests
+from  config import parse_args
 import gdown
 import matplotlib.pyplot as plt
 
-parser = argparse.ArgumentParser()
+# parser = argparse.ArgumentParser()
+#
+# parser.add_argument('--max_iterations', type=int,
+#                     default=30000, help='maximum epoch number to train')
+# parser.add_argument('--max_epochs', type=int,
+#                     default=200, help='maximum epoch number to train')
+# parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
+# parser.add_argument('--deterministic', type=int, default=1,
+#                     help='whether use deterministic training')
+# parser.add_argument('--base_lr', type=float, default=0.01,
+#                     help='segmentation network learning rate')
+# parser.add_argument('--img_size', type=int,
+#                     default=224, help='input patch size of network input')
+# parser.add_argument('--seed', type=int,
+#                     default=1234, help='random seed')
+# parser.add_argument('--zip', action='store_true', help='use zipped dataset instead of folder dataset')
+# parser.add_argument('--cache-mode', type=str, default='part', choices=['no', 'full', 'part'],
+#                     help='no: no cache, '
+#                          'full: cache all data, '
+#                          'part: sharding the dataset into nonoverlapping pieces and only cache one piece')
+# parser.add_argument('--resume', help='resume from checkpoint')
+# parser.add_argument('--accumulation-steps', type=int, help="gradient accumulation steps")
+# parser.add_argument('--use-checkpoint', action='store_true',
+#                     help="whether to use gradient checkpointing to save memory")
+# parser.add_argument('--amp-opt-level', type=str, default='O1', choices=['O0', 'O1', 'O2'],
+#                     help='mixed precision opt level, if O0, no amp is used')
+# parser.add_argument('--tag', help='tag of experiment')
+# parser.add_argument('--eval', action='store_true', help='Perform evaluation only')
+# parser.add_argument('--throughput', action='store_true', help='Test throughput only')
 
-parser.add_argument('--max_iterations', type=int,
-                    default=30000, help='maximum epoch number to train')
-parser.add_argument('--max_epochs', type=int,
-                    default=200, help='maximum epoch number to train')
-parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
-parser.add_argument('--deterministic', type=int, default=1,
-                    help='whether use deterministic training')
-parser.add_argument('--base_lr', type=float, default=0.01,
-                    help='segmentation network learning rate')
-parser.add_argument('--img_size', type=int,
-                    default=224, help='input patch size of network input')
-parser.add_argument('--seed', type=int,
-                    default=1234, help='random seed')
-parser.add_argument('--zip', action='store_true', help='use zipped dataset instead of folder dataset')
-parser.add_argument('--cache-mode', type=str, default='part', choices=['no', 'full', 'part'],
-                    help='no: no cache, '
-                         'full: cache all data, '
-                         'part: sharding the dataset into nonoverlapping pieces and only cache one piece')
-parser.add_argument('--resume', help='resume from checkpoint')
-parser.add_argument('--accumulation-steps', type=int, help="gradient accumulation steps")
-parser.add_argument('--use-checkpoint', action='store_true',
-                    help="whether to use gradient checkpointing to save memory")
-parser.add_argument('--amp-opt-level', type=str, default='O1', choices=['O0', 'O1', 'O2'],
-                    help='mixed precision opt level, if O0, no amp is used')
-parser.add_argument('--tag', help='tag of experiment')
-parser.add_argument('--eval', action='store_true', help='Perform evaluation only')
-parser.add_argument('--throughput', action='store_true', help='Test throughput only')
-
-args = parser.parse_args()
+args = parse_args()
 
 
 def calculate_dice(pred, gt):
