@@ -13,7 +13,8 @@ def setup_logger(logger_name, output_file=None):
     formatter = logging.Formatter('[%(asctime)s.%(msecs)03d] %(message)s', datefmt='%H:%M:%S')
 
     # Always log to the default "logging.txt" file
-    default_fh = logging.FileHandler(global_logging_txt)
+    # file_handler = logging.FileHandler(filename='your_log_file.log', encoding='utf-8')
+    default_fh = logging.FileHandler(filename=global_logging_txt, encoding='utf-8')
     default_fh.setLevel(logging.INFO)
     default_fh.setFormatter(formatter)
     logger.addHandler(default_fh)

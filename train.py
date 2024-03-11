@@ -125,6 +125,15 @@ class DynamicDataset(data.Dataset):
         return size
 
 
+def format_progress_message(iteration, total):
+
+    progress_percentage = (iteration / total) * 100
+    progress_bar_length = int(50 * iteration // total)
+    progress_bar = '#' * progress_bar_length + '-' * (50 - progress_bar_length)
+
+    return f"{progress_percentage:3.0f}%|{progress_bar}| {iteration}/{total}"
+
+
 # if __name__ == "__main__":
 def train(batch_size=4, max_epochs=200, base_lr=0.01, seed=1234, n_gpu=1, img_size=224, model_name='swinunet'):
     if os.environ.get('current_fold') is None:
@@ -282,7 +291,8 @@ def train(batch_size=4, max_epochs=200, base_lr=0.01, seed=1234, n_gpu=1, img_si
                 param_group['lr'] = lr_
 
             iter_num = iter_num + 1
-
+        progress_message = format_progress_message(epoch_num + 1, max_epoch)
+        logger.info(progress_message)
             # logger.info('iteration %d : loss : %f' % (iter_num, loss.item()))
 
         save_interval = 5

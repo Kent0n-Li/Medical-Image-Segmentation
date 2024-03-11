@@ -575,7 +575,7 @@ def run_test():
     # TODO convert it from command line to python code
     # threading.Thread(target=run_command_async, args=(complete_command,)).start()
 
-    test_process = Process(target=run_command_async, args="test")
+    test_process = Process(target=run_command_async, args=("test", 4, 2, 0.01))
     test_process.start()
     test_process.join()
     print("Test process started")
@@ -597,69 +597,6 @@ def run_test():
             with open(data_json_file, 'r') as f:
                 data_json = json.load(f)
             label_num = len(data_json['labels'])
-
-            # if os.environ['MODEL_NAME'] == 'nnunet3d':
-            #     if file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-            #         img = sitk.ReadImage(img_path)
-            #         img = sitk.GetArrayFromImage(img)
-            #
-            #         pred = sitk.ReadImage(prediction_path)
-            #         pred = sitk.GetArrayFromImage(pred)
-            #         ground_truth = sitk.ReadImage(ground_truth_path)
-            #         ground_truth = sitk.GetArrayFromImage(ground_truth)
-            #     else:
-            #         return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
-            #
-            #     half_layer = int(np.argmax(ground_truth.sum(axis=(1, 2))))
-            #     img = img[half_layer]
-            #     img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
-            #
-            #     mask_result = np.zeros_like(img)
-            #     img_with_GT = img.copy()
-            #
-            #     each_metric = []
-            #     for i in range(1, label_num):
-            #         each_metric.append(calculate_metric_percase(pred == i, ground_truth == i))
-            #
-            #         mask = np.where(pred[half_layer] == i, 1, 0).astype(np.uint8)
-            #         colored_mask = np.zeros_like(img)
-            #         colored_mask[mask == 1] = colors[i - 1]
-            #         img = cv2.addWeighted(img, 1, colored_mask, 0.5, 0)
-            #
-            #         gt_mask = np.where(ground_truth[half_layer] == i, 1, 0).astype(np.uint8)
-            #         colored_mask_gt = np.zeros_like(img_with_GT)
-            #         colored_mask_gt[gt_mask == 1] = colors[i - 1]
-            #         img_with_GT = cv2.addWeighted(img_with_GT, 1, colored_mask_gt, 0.5, 0)
-            #
-            #         mask_result[mask == 1] = colors[i - 1]
-            #
-            #     metric_list.append(each_metric)
-            #
-            #     img_with_mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
-            #                                            os.environ['current_dataset'], nnUNetPlans,
-            #                                            'visualization_result', test_img_name + '.png')
-            #     os.makedirs(
-            #         os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-            #                      nnUNetPlans, 'visualization_result'), exist_ok=True)
-            #     cv2.imwrite(img_with_mask_save_path, img)
-            #
-            #     img_with_GT_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
-            #                                          os.environ['current_dataset'], nnUNetPlans, 'GT_result',
-            #                                          test_img_name + '.png')
-            #     os.makedirs(
-            #         os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-            #                      nnUNetPlans, 'GT_result'), exist_ok=True)
-            #     cv2.imwrite(img_with_GT_save_path, img_with_GT)
-            #
-            #     mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
-            #                                   os.environ['current_dataset'], nnUNetPlans, 'mask_result',
-            #                                   test_img_name + '.png')
-            #     os.makedirs(
-            #         os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-            #                      nnUNetPlans, 'mask_result'), exist_ok=True)
-            #     cv2.imwrite(mask_save_path, mask_result)
-
-            # else:
 
             if file_ext in ['.png', '.bmp', '.tif']:
 
