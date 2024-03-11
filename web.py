@@ -1,10 +1,8 @@
-from flask import Flask, request, jsonify, render_template, redirect
-import subprocess
-import threading
-from threading import Lock
-import os
+import random
+from multiprocessing  import Lock
+from flask import Flask, request, jsonify, render_template
+from multiprocessing import Process
 import psutil
-import sys
 import glob
 import json
 import shutil
@@ -14,49 +12,13 @@ import numpy as np
 import SimpleITK as sitk
 import webbrowser
 import cv2
-
+from config import *
 from scipy.spatial import cKDTree
 
+from test import test_model
+from train import train
+
 app = Flask(__name__)
-
-
-colors = [
-    (0, 0, 255),    # 红
-    (0, 255, 0),    # 绿
-    (255, 0, 0),    # 蓝
-    (0, 255, 255),  # 黄
-    (255, 0, 255),  # 紫
-    (255, 255, 0),  # 青
-    (192, 0, 0),    # 深红
-    (0, 192, 0),    # 深绿
-    (0, 0, 192),    # 深蓝
-    (192, 192, 0),  # 橄榄
-    (192, 0, 192),  # 紫罗兰
-    (0, 192, 192),  # 蓝绿
-    (128, 128, 128),# 灰
-    (128, 0, 0),    # 半深红
-    (0, 128, 0),    # 半深绿
-    (0, 0, 128),    # 半深蓝
-    (128, 128, 0),  # 半深橄榄
-    (128, 0, 128),  # 半深紫
-    (0, 128, 128),  # 半深蓝绿
-    (64, 128, 0),   # 橄榄/绿
-    (128, 64, 0),   # 橄榄/红
-    (64, 0, 128),   # 紫/蓝
-    (128, 0, 64),   # 紫/红
-    (0, 128, 64),   # 蓝绿/绿
-    (0, 64, 128),   # 蓝绿/蓝
-    (64, 0, 0),     # 暗红
-    (0, 64, 0),     # 暗绿
-    (0, 0, 64),     # 暗蓝
-    (64, 64, 64),   # 暗灰
-    (64, 64, 0),    # 暗橄榄
-    (0, 64, 64),    # 暗蓝绿
-    (64, 0, 64)     # 暗紫
-]
-
-
-
 
 # 用于保存正在运行的进程
 current_process = None
@@ -66,8 +28,8 @@ current_output = ""
 
 # 用于保存进程的状态 ('running', 'completed', 'not_started')
 process_status = 'not_started'
-output_file = 'command_output.txt'
 conda_env = os.path.basename(sys.prefix)
+
 
 def kill_process_tree(pid):
     try:
@@ -84,16 +46,16 @@ def kill_process_tree(pid):
     parent.kill()
 
 
-
 def calculate_dice(pred, gt):
     # 用于计算 Dice 相似系数
     intersection = np.logical_and(pred, gt).sum()
     union = pred.sum() + gt.sum()
-    
+
     if union == 0:
         return 1.0  # 如果两者都是空集，Dice 应为 1
-    
+
     return 2 * intersection / union
+
 
 def calculate_asd(pred, gt):
     pred_border = np.logical_xor(pred, np.roll(pred, 1, axis=0))
@@ -101,10 +63,10 @@ def calculate_asd(pred, gt):
 
     pred_border_indices = np.argwhere(pred_border)
     gt_border_indices = np.argwhere(gt_border)
-    
+
     if len(pred_border_indices) == 0 or len(gt_border_indices) == 0:
         return 0.0  # 无法计算表面距离
-    
+
     tree_gt = cKDTree(gt_border_indices)
     tree_pred = cKDTree(pred_border_indices)
 
@@ -113,14 +75,14 @@ def calculate_asd(pred, gt):
 
     asd = np.mean(distances_to_gt) + np.mean(distances_to_pred)
     asd /= 2.0
-    
+
     return asd
 
 
 def calculate_metric_percase(pred, gt):
     pred[pred > 0] = 1
     gt[gt > 0] = 1
-    
+
     if pred.sum() > 0 and gt.sum() > 0:
         dice = calculate_dice(pred, gt)
         asd = calculate_asd(pred, gt)
@@ -135,12 +97,14 @@ def reader_thread(process, f):
     for line in iter(process.stdout.readline, ''):
         print(line)
         f.write(line)
-    
-def run_command_async(command):
+
+
+def run_command_async(command, batch_size=None, max_epochs=None, base_lr=None):
     global current_output, process_status, current_process
+    print("Starting run_command_async")
     try:
         with process_lock:
-
+            print("Starting run_command_async")
             if os.path.exists('static/progress.png'):
                 white_image = Image.new("RGB", (50, 50), "white")
                 white_image.save('static/progress.png')
@@ -148,33 +112,48 @@ def run_command_async(command):
                 white_image = Image.new("RGB", (50, 50), "white")
                 white_image.save('static/result_visiual.png')
 
-
             current_output = "Output: "
             process_status = 'running'
-            env = os.environ.copy()
+            # env = os.environ.copy()
+            if command.startswith('train'):
+                train(batch_size, max_epochs, base_lr)
+            elif command.startswith('test'):
+                test_model()
 
-            current_process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
-
-            print("Process started")
-            with open(output_file, 'w') as f:
-                f.write("Process started")
-                f.flush()
-                for line in current_process.stdout:
-                    print(line)
-                    f.write(line)
-                    f.flush()
-
+            # print("Process started")
+            # with open(output_file, 'w') as f:
+            #     f.write("Process started")
+            #     f.flush()
+            #     for line in current_process.stdout:
+            #         print(line)
+            #         f.write(line)
+            #         f.flush()
 
         with process_lock:
             print("Process completed")
             process_status = 'completed'
             current_process = None
-            
-        
+
     except Exception as e:
+        print(f"An error occurred: {e}")
         with process_lock:
             process_status = 'not_started'
             current_process = None
+
+
+def write_output_from_queue_to_file(output_queue):
+    with open(output_file, 'w') as f:
+        while True:
+            message = output_queue.get()  # This will block until a message is available
+            if message == "Process completed":  # Assuming this is your termination condition
+                print(message)
+                f.write(message + '\n')
+                f.flush()
+                break  # Exit the loop
+            else:
+                print(message)  # Optional: for logging to console as well
+                f.write(message + '\n')
+                f.flush()
 
 
 def read_paths_from_file(filename):
@@ -189,6 +168,7 @@ def read_paths_from_file(filename):
         print(f"An error occurred while reading {filename}: {e}")
     return paths
 
+
 def write_paths_to_file(filename, paths):
     try:
         with open(filename, 'w') as f:
@@ -199,13 +179,14 @@ def write_paths_to_file(filename, paths):
 
 def find_latest_txt_file(directory):
     txt_files = glob.glob(os.path.join(directory, "*.txt"))
-    
+
     if not txt_files:
         return None
-    
+
     latest_file = max(txt_files, key=os.path.getmtime)
-    
+
     return latest_file
+
 
 def dataset_name_exists(target_name):
     base_path = os.environ['nnUNet_raw']
@@ -215,11 +196,12 @@ def dataset_name_exists(target_name):
                 return True
     return False
 
+
 def resize_image(mask_path, output_path, new_size):
     print(mask_path)
     file_ext = os.path.splitext(mask_path)[1]
     if file_ext in ['.png', '.bmp', '.tif']:
-        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         mask_resized = cv2.resize(mask, (new_size, new_size), interpolation=cv2.INTER_NEAREST)
         cv2.imwrite(output_path, mask_resized)
 
@@ -233,10 +215,10 @@ def full_auto():
     batchSize = data.get('batchSize', '4')
     totalEpochs = data.get('totalEpochs', '100')
     learningRate = data.get('learningRate', '0.01')
-    
+
     try:
         response = data_preprocess()
-        
+
         for model in selected_models:
             with app.test_client() as client:
                 # Call train_model endpoint
@@ -259,18 +241,16 @@ def full_auto():
                     'model_name': model,
                     'dataset': dataset
                 })
-                
-        
+                print(response.json)
+
         return jsonify({"status": "Full auto completed successfully."})
 
     except Exception as e:
         return jsonify({"error": f"An error occurred: {e}"})
 
 
-
 @app.route('/get_paths', methods=['GET'])
 def get_paths():
-    
     raw_path = os.environ['nnUNet_raw']
     try:
         all_files_and_folders = os.listdir(raw_path)
@@ -284,6 +264,7 @@ def get_paths():
         'dataset': os.environ['current_dataset'],
     })
 
+
 @app.route('/import_dataset', methods=['POST'])
 def import_dataset():
     training_image_path = request.json.get('training_image_path', '')
@@ -296,66 +277,65 @@ def import_dataset():
     if dataset_name_exists(dataset_name):
         return jsonify({'error': f"Dataset with name {dataset_name} already exists!"})
 
-
-
     # 目标路径（你可以根据需要更改）
     dataset_id = len(os.listdir(os.environ['nnUNet_raw'])) + 1
     dataset_id = "{:03}".format(dataset_id)
     dataset_name = f"Dataset{dataset_id}_{dataset_name}"
     os.environ['current_dataset'] = dataset_name
 
-
-    target_training_image_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTr')
-    target_training_label_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr')
-    target_testing_image_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
-    target_testing_label_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs')
-
-
+    # Define target paths
+    target_paths = {
+        'training_image': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTr'),
+        'training_label': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr'),
+        'testing_image': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs'),
+        'testing_label': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs'),
+        'validation_image': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesVal'),
+        'validation_label': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsVal'),
+    }
     try:
         # 创建目标文件夹
-        os.makedirs(target_training_image_path, exist_ok=True)
-        os.makedirs(target_training_label_path, exist_ok=True)
-        os.makedirs(target_testing_image_path, exist_ok=True)
-        os.makedirs(target_testing_label_path, exist_ok=True)
+        for path in target_paths.values():
+            os.makedirs(path, exist_ok=True)
 
-        # 复制文件
-        for item in os.listdir(training_image_path):
-            file_ext = os.path.splitext(os.path.join(training_image_path, item))[1]
-            if file_ext == '.gz':
-                    file_ext = '.nii.gz'
-            shutil.copy2(os.path.join(training_image_path, item), target_training_image_path)
-            target_save_name = os.path.join(target_training_image_path, item.replace(file_ext,'_0000'+file_ext))
-            os.rename(os.path.join(target_training_image_path, item), target_save_name)
-            resize_image(target_save_name, target_save_name, image_size)
+        train_img_list = os.listdir(training_image_path)
+        split_index = random_shuffle_with_spilt_index(train_img_list, validation_factor)
 
+        # Validation dataset
+        val_img_list = train_img_list[:split_index]
+        train_img_list = train_img_list[split_index:]
 
-        for item in os.listdir(training_label_path):
+        # Copy and resize images for training, validation, and testing datasets
+        copy_and_resize_images(training_image_path, target_paths['training_image'], train_img_list, image_size)
+        copy_and_resize_images(training_label_path, target_paths['training_label'], train_img_list, image_size)
+        copy_and_resize_images(training_image_path, target_paths['validation_image'], val_img_list, image_size)
+        copy_and_resize_images(training_label_path, target_paths['validation_label'], val_img_list, image_size)
 
-
-            shutil.copy2(os.path.join(training_label_path, item), target_training_label_path)
-            target_save_name = os.path.join(target_training_label_path, item)
-            resize_image(target_save_name, target_save_name, image_size)
-
-        for item in os.listdir(testing_image_path):
-            file_ext = os.path.splitext(os.path.join(testing_image_path, item))[1]
-            if file_ext == '.gz':
-                    file_ext = '.nii.gz'
-            shutil.copy2(os.path.join(testing_image_path, item), target_testing_image_path)
-            target_save_name = os.path.join(target_testing_image_path, item.replace(file_ext,'_0000'+file_ext))
-            os.rename(os.path.join(target_testing_image_path, item), target_save_name)
-            resize_image(target_save_name, target_save_name, image_size)
-
-        for item in os.listdir(testing_label_path):
-
-
-            shutil.copy2(os.path.join(testing_label_path, item), target_testing_label_path)
-            target_save_name = os.path.join(target_testing_label_path, item)
-            resize_image(target_save_name, target_save_name, image_size)
+        # For testing dataset, no need to split, just copy and resize
+        test_img_list = os.listdir(testing_image_path)
+        copy_and_resize_images(testing_image_path, target_paths['testing_image'], test_img_list, image_size)
+        test_label_list = os.listdir(testing_label_path)
+        copy_and_resize_images(testing_label_path, target_paths['testing_label'], test_label_list, image_size)
 
         return jsonify({'status': 'Dataset imported successfully'})
 
     except Exception as e:
-        return jsonify({'error': str(e)})    
+        return jsonify({'error': str(e)})
+
+
+def random_shuffle_with_spilt_index(train_img_list, factor):
+    random.shuffle(train_img_list)  # Shuffle the list to ensure random selection
+    return int(len(train_img_list) * factor)  # % for validation
+
+
+def copy_and_resize_images(source_path, target_path, file_list, image_size):
+    """
+    Copies and resizes images from source to target path.
+    """
+    for item in file_list:
+        source_file = os.path.join(source_path, item)
+        target_file = os.path.join(target_path, item)
+        shutil.copy2(source_file, target_file)
+        resize_image(target_file, target_file, image_size)
 
 
 @app.route('/data_preprocess', methods=['POST'])
@@ -370,159 +350,134 @@ def data_preprocess():
         os.environ['MODEL_NAME'] = model_name
         os.environ['current_dataset'] = dataset
 
-
-        imageTr_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTr')
-        labelTr_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr')
-        imageTs_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
-        labelTs_path =  os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs')
+        imageTr_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTr')
+        labelTr_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr')
+        imageTs_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
+        labelTs_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs')
         num_train = len(os.listdir(imageTr_path))
 
+        label_file_list = []
+        count = 0
+        for label_name in os.listdir(labelTr_path):
+            label_path = os.path.join(labelTr_path, label_name)
+            file_ext = os.path.splitext(label_name)[1]
+            count += 1
+            if count > 20:
+                break
 
-        if os.environ['MODEL_NAME'] == 'nnunet3d':
-            for label_name in os.listdir(labelTr_path):
-                label_path = os.path.join(labelTr_path, label_name)
-                file_ext = os.path.splitext(label_name)[1]
-                
-                if file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-                    nplabel = sitk.ReadImage(label_path)
-                    nplabel = sitk.GetArrayFromImage(nplabel)
-                else:
-                    return jsonify({'status': 'Please use nii.gz, nrrd or mha format.'})
-                
-                unique_values = np.unique(np.array(nplabel))
+            # Question: should I use a new loop to convert all the jpg to pngs.
+            # Check and convert JPG to PNG before further processing
+            if file_ext == '.jpg':
+                png_label_name = os.path.splitext(label_name)[0] + '.png'
+                png_label_path = os.path.join(labelTr_path, png_label_name)
+                convert_jpg_to_png(label_path, png_label_path)
+                # Update label_path and file_ext for further processing
+                label_path = png_label_path
+                file_ext = '.png'
 
-
-
-            label_info_set = {}
-            label_info_set['background'] = 0
-            for i in range(1,len(unique_values)):
-                label_info_set['lab'+str(unique_values[i])] = i
-            
-
-            #find max
-            
-            num_list = [int(num.split('_')[-1].split('.')[0]) for num in os.listdir(imageTr_path)]
-            max_num = max(num_list)
-
-            image_info_set = {}
-            for i in range(max_num+1):
-                image_info_set[str(i)] = 'channel'+str(i)
-
-            if file_ext == '.gz':
-                file_ext = '.nii.gz'
-            num_train = int(num_train/(max_num+1))
-
-            generate_dataset_json(os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset']), image_info_set, label_info_set,
-                                num_train, file_ext, dataset_name=os.environ['current_dataset'])
-
-        else:
-
-            label_file_list = []
-            count = 0
-            for label_name in os.listdir(labelTr_path):
-                label_path = os.path.join(labelTr_path, label_name)
-                file_ext = os.path.splitext(label_name)[1]
-                count += 1
-                if count > 20:
-                    break
-
-                if file_ext in ['.png', '.bmp', '.tif']:
-                    nplabel = Image.open(label_path).convert("L")
-                    nplabel = np.array(nplabel)
-                    label_file_list.append(nplabel)
-                elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-                    nplabel = sitk.ReadImage(label_path)
-                    nplabel = sitk.GetArrayFromImage(nplabel)
-                    label_file_list.append(nplabel)
-                else:
-                    return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
-
-            unique_values = np.unique(np.array(label_file_list))
-            print(unique_values)
-
-            for label_name in os.listdir(labelTr_path):
-                label_path = os.path.join(labelTr_path, label_name)
-                file_ext = os.path.splitext(label_name)[1]
-
-                if file_ext in ['.png', '.bmp', '.tif']:
-                    nplabel = Image.open(label_path).convert("L")
-                    nplabel = np.array(nplabel)
-                elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-                    nplabel = sitk.ReadImage(label_path)
-                    nplabel = sitk.GetArrayFromImage(nplabel)
-                else:
-                    return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
-                
-                new_label = np.searchsorted(unique_values, nplabel)
-                new_label = Image.fromarray(new_label.astype(np.uint8))
-                new_label.save(label_path)
-
-
-            for label_name in os.listdir(labelTs_path):
-                label_path = os.path.join(labelTs_path, label_name)
-                file_ext = os.path.splitext(label_name)[1]
-
-                if file_ext in ['.png', '.bmp', '.tif']:
-                    nplabel = Image.open(label_path).convert("L")
-                    nplabel = np.array(nplabel)
-                    new_label = np.searchsorted(unique_values, nplabel)
-                    new_label = Image.fromarray(new_label.astype(np.uint8), "L")
-                    new_label.save(label_path)
-                elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-                    nplabel = sitk.ReadImage(label_path)
-                    nplabel_array = sitk.GetArrayFromImage(nplabel)
-                    new_label_array = np.searchsorted(unique_values, nplabel_array)
-                    new_label_sitk = sitk.GetImageFromArray(new_label_array.astype(np.uint8))
-                    new_label_sitk.CopyInformation(nplabel)
-                    sitk.WriteImage(new_label_sitk, label_path)
-                else:
-                    return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
-                
-
-
-            label_info_set = {}
-            label_info_set['background'] = 0
-            for i in range(1,len(unique_values)):
-                label_info_set['lab'+str(unique_values[i])] = i
-
-
-
-            imageTr_list = os.listdir(imageTr_path)
-
-            img_name = imageTr_list[0]
-            img_path = os.path.join(imageTr_path, img_name)
-            file_ext = os.path.splitext(img_name)[1]
             if file_ext in ['.png', '.bmp', '.tif']:
-                npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-                npimg = np.array(npimg)
+                nplabel = Image.open(label_path).convert("L")
+                nplabel = np.array(nplabel)
+                label_file_list.append(nplabel)
             elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-                npimg = sitk.ReadImage(img_path)
-                npimg = sitk.GetArrayFromImage(npimg)
+                nplabel = sitk.ReadImage(label_path)
+                nplabel = sitk.GetArrayFromImage(nplabel)
+                label_file_list.append(nplabel)
             else:
                 return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
-            
-            image_info_set = {}
-            if len(npimg.shape) == 2:
-                image_info_set['0'] = 'channel0'
-            elif len(npimg.shape) == 3:
-                for i in range(npimg.shape[2]):
-                    image_info_set[str(i)] = 'channel'+str(i)
 
-            if file_ext == '.gz':
-                file_ext = '.nii.gz'
+        unique_values = np.unique(np.array(label_file_list))
+        print(unique_values)
 
-            generate_dataset_json(os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset']), image_info_set, label_info_set,
-                                num_train, file_ext, dataset_name=os.environ['current_dataset'])
+        for label_name in os.listdir(labelTr_path):
+            label_path = os.path.join(labelTr_path, label_name)
+            file_ext = os.path.splitext(label_name)[1]
 
+            # TODO convert JPG to PNG becuase some methods don't support .jpg
+            if file_ext == '.jpg':
+                png_label_name = os.path.splitext(label_name)[0] + '.png'
+                png_label_path = os.path.join(labelTr_path, png_label_name)
+                convert_jpg_to_png(label_path, png_label_path)
+                # Update label_path and file_ext for further processing
+                label_path = png_label_path
+                file_ext = '.png'
+
+            if file_ext in ['.png', '.bmp', '.tif']:
+                nplabel = Image.open(label_path).convert("L")
+                nplabel = np.array(nplabel)
+            elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
+                nplabel = sitk.ReadImage(label_path)
+                nplabel = sitk.GetArrayFromImage(nplabel)
+            else:
+                return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
+
+            new_label = np.searchsorted(unique_values, nplabel)
+            new_label = Image.fromarray(new_label.astype(np.uint8))
+            new_label.save(label_path)
+
+        for label_name in os.listdir(labelTs_path):
+            label_path = os.path.join(labelTs_path, label_name)
+            file_ext = os.path.splitext(label_name)[1]
+
+            if file_ext in ['.png', '.bmp', '.tif']:
+                nplabel = Image.open(label_path).convert("L")
+                nplabel = np.array(nplabel)
+                new_label = np.searchsorted(unique_values, nplabel)
+                new_label = Image.fromarray(new_label.astype(np.uint8), "L")
+                new_label.save(label_path)
+            elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
+                nplabel = sitk.ReadImage(label_path)
+                nplabel_array = sitk.GetArrayFromImage(nplabel)
+                new_label_array = np.searchsorted(unique_values, nplabel_array)
+                new_label_sitk = sitk.GetImageFromArray(new_label_array.astype(np.uint8))
+                new_label_sitk.CopyInformation(nplabel)
+                sitk.WriteImage(new_label_sitk, label_path)
+            else:
+                return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
+
+        label_info_set = {}
+        label_info_set['background'] = 0
+        for i in range(1, len(unique_values)):
+            label_info_set['lab' + str(unique_values[i])] = i
+
+        imageTr_list = os.listdir(imageTr_path)
+
+        img_name = imageTr_list[0]
+        img_path = os.path.join(imageTr_path, img_name)
+        file_ext = os.path.splitext(img_name)[1]
+        if file_ext in ['.png', '.bmp', '.tif']:
+            npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
+            npimg = np.array(npimg)
+        elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
+            npimg = sitk.ReadImage(img_path)
+            npimg = sitk.GetArrayFromImage(npimg)
+        else:
+            return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
+
+        image_info_set = {}
+        if len(npimg.shape) == 2:
+            image_info_set['0'] = 'channel0'
+        elif len(npimg.shape) == 3:
+            for i in range(npimg.shape[2]):
+                image_info_set[str(i)] = 'channel' + str(i)
+
+        if file_ext == '.gz':
+            file_ext = '.nii.gz'
+
+        generate_dataset_json(os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset']), image_info_set,
+                              label_info_set,
+                              num_train, file_ext, dataset_name=os.environ['current_dataset'])
 
         dataset_id = dataset.split('_')[0].replace('Dataset', '')
-        
-        complete_command = f"conda activate {conda_env} && nnUNetv2_plan_and_preprocess -d {dataset_id} --verify_dataset_integrity"
-        print(complete_command)
 
-        threading.Thread(target=run_command_async, args=(complete_command,)).start()
         return jsonify({'status': 'Preprocessing started'})
 
+
+def convert_jpg_to_png(jpg_path, png_path):
+    """Converts a JPG file to PNG format."""
+    with Image.open(jpg_path) as img:
+        img.save(png_path, "PNG")
+    os.remove(jpg_path)  # Delete the original JPG file after conversion
 
 
 @app.route('/train_model', methods=['POST'])
@@ -531,7 +486,7 @@ def train_model():
     with process_lock:
         if process_status == 'running':
             return jsonify({'error': 'A command is already running'})
-        fold = os.environ['current_fold']
+        # fold = os.environ['current_fold']
 
         model_name = request.json.get('model_name', '')
         os.environ['MODEL_NAME'] = model_name
@@ -542,29 +497,22 @@ def train_model():
         totalEpochs = request.json.get('totalEpochs', '100')
         learningRate = request.json.get('learningRate', '0.01')
 
-
-        nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__2d'
-        if os.environ['MODEL_NAME'] == 'nnunet3d':
-            nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__3d_fullres'
-
-
-        if os.environ['MODEL_NAME'] == 'nnunet' or os.environ['MODEL_NAME'] == 'nnsam':
-            dataset_id = dataset_id.split('_')[0].replace('Dataset', '')
-            complete_command = f"conda activate {conda_env} && nnUNetv2_train {dataset_id} 2d {fold}"
-        elif os.environ['MODEL_NAME'] == 'nnunet3d':
-            dataset_id = dataset_id.split('_')[0].replace('Dataset', '')
-            complete_command = f"conda activate {conda_env} && nnUNetv2_train {dataset_id} 3d_fullres {fold}"
-
-        else:
-            split_json_path = os.path.join(os.environ['nnUNet_preprocessed'], dataset_id, 'splits_final.json')
-            if not os.path.exists(split_json_path):
-                complete_command = f"conda activate {conda_env} && nnUNetv2_train {dataset_id} 2d {fold} && python train.py --batchSize {batchSize} --totalEpochs {totalEpochs} --learningRate {learningRate}"
-            else:
-                complete_command = f"conda activate {conda_env} && python train.py --batch_size {batchSize} --max_epochs {totalEpochs} --base_lr {learningRate}"
+        complete_command = f"conda activate {conda_env} && python train.py --batch_size {batchSize} --max_epochs {totalEpochs} --base_lr {learningRate}"
+        batchSize = int(batchSize)
+        totalEpochs = int(totalEpochs)
+        learningRate = float(learningRate)
 
         print(complete_command)
+        # Status: conda activate nnsam & & python train.py - -batch_size 4 - -max_epochs 2 - -base_lr 0.01
+        # TODO convert it from command line to python code
+        # train_model(batch_size=batchSize, max_epochs=totalEpochs, base_lr=learningRate)
 
-        threading.Thread(target=run_command_async, args=(complete_command,)).start()
+        training_process = Process(target=run_command_async,
+                                   args=("train", batchSize, totalEpochs, learningRate))
+        training_process.start()
+        training_process.join()
+        print("Training process Ended")
+        # threading.Thread(target=run_command_async, args=(complete_command,)).start()
         return jsonify({'status': complete_command})
 
 
@@ -584,189 +532,142 @@ def run_test():
     if os.environ['MODEL_NAME'] == 'nnunet3d':
         nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__3d_fullres'
 
+    val_folder = os.path.join(os.environ['nnUNet_raw'], dataset_id, f'imagesVal')
+    if not os.path.exists(val_folder):
+        os.makedirs(val_folder, exist_ok=True)
+        src_dir_path = os.path.join(os.environ['nnUNet_raw'], dataset_id, 'imagesTr')
+        src_list = os.listdir(src_dir_path)
+        split_index = random_shuffle_with_spilt_index(src_list, validation_factor)
+        for item in src_list[:split_index]:
+            src_path = os.path.join(os.environ['nnUNet_raw'], dataset_id, 'imagesTr', item)
+            dest_path = os.path.join(val_folder, item)
+            shutil.copy(src_path, dest_path)
 
-    split_json_path = os.path.join(os.environ['nnUNet_preprocessed'], dataset_id, 'splits_final.json')
-    with open(split_json_path, 'r') as f:
-        split_json = json.load(f)
-    for i, fold_data in enumerate(split_json):
-        val_folder = os.path.join(os.environ['nnUNet_preprocessed'], dataset_id, f'fold_{i}_val')
-        if not os.path.exists(val_folder):
-            os.makedirs(val_folder, exist_ok=True)
-            src_dir_path = os.path.join(os.environ['nnUNet_raw'], dataset_id, 'imagesTr')
-            src_list = os.listdir(src_dir_path)
-            for img_name in fold_data['val']:
-                for file in src_list:
-                    end_legth = len(file.split('_')[-1])
-
-                    if img_name == file[:-end_legth-1]:
-                        src_path = os.path.join(os.environ['nnUNet_raw'], dataset_id, 'imagesTr', file)
-                        dest_path = os.path.join(val_folder, file)
-                        shutil.copy(src_path, dest_path)
-    
-    dataset_id = dataset_id.split('_')[0].replace('Dataset', '')
+    # dataset_id = dataset_id.split('_')[0].replace('Dataset', '')
     fold = os.environ['current_fold']
-    ckpt_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, f'fold_{fold}','checkpoint_final.pth')
-    if os.path.exists(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, f'fold_{fold}','checkpoint_best.pth')):
-        shutil.copy(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, f'fold_{fold}','checkpoint_best.pth'), ckpt_path)
-
+    ckpt_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+                             nnUNetPlans, f'fold_{fold}', 'checkpoint_final.pth')
+    if os.path.exists(
+            os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+                         nnUNetPlans, f'fold_{fold}', 'checkpoint_best.pth')):
+        shutil.copy(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+                                 nnUNetPlans, f'fold_{fold}', 'checkpoint_best.pth'), ckpt_path)
 
     input_folder = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
-    output_folder = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'test_pred')
+    output_folder = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+                                 nnUNetPlans, 'test_pred')
     os.makedirs(output_folder, exist_ok=True)
 
-    if os.environ['MODEL_NAME'] == 'nnunet' or os.environ['MODEL_NAME'] == 'nnsam':
-        complete_command = f"conda activate {conda_env} && nnUNetv2_predict -i {input_folder} -o {output_folder} -d {dataset_id} -c 2d -f {fold}"
-    elif os.environ['MODEL_NAME'] == 'nnunet3d':
-        complete_command = f"conda activate {conda_env} && nnUNetv2_predict -i {input_folder} -o {output_folder} -d {dataset_id} -c 3d_fullres -f {fold}"
-    else:
-        complete_command = f"conda activate {conda_env} && python test.py"
+    # if os.environ['MODEL_NAME'] == 'nnunet' or os.environ['MODEL_NAME'] == 'nnsam': complete_command = f"conda
+    # activate {conda_env} && nnUNetv2_predict -i {input_folder} -o {output_folder} -d {dataset_id} -c 2d -f {fold}"
+    # elif os.environ['MODEL_NAME'] == 'nnunet3d': complete_command = f"conda activate {conda_env} &&
+    # nnUNetv2_predict -i {input_folder} -o {output_folder} -d {dataset_id} -c 3d_fullres -f {fold}" else:
 
-    
+    complete_command = f"conda activate {conda_env} && python test.py"
+
     print(input_folder)
-
     print(complete_command)
-    threading.Thread(target=run_command_async, args=(complete_command,)).start()
+    # conda activate nnsam & & python test.py
+    # Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234,
+    #           zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False,
+    #           amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=0)
 
+    # TODO convert it from command line to python code
+    # threading.Thread(target=run_command_async, args=(complete_command,)).start()
 
+    test_process = Process(target=run_command_async, args=("test", 4, 2, 0.01))
+    test_process.start()
+    test_process.join()
+    print("Test process started")
 
     with process_lock:
         print(input_folder)
         test_img_list_ori = os.listdir(input_folder)
-        test_img_list = [test_img for test_img in test_img_list_ori if '_0000.' in test_img]
+        test_img_list = [test_img for test_img in test_img_list_ori]
         metric_list = []
         for test_img_name in test_img_list:
             img_path = os.path.join(input_folder, test_img_name)
-            ground_truth_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs', test_img_name.replace('_0000',''))
-            prediction_path = os.path.join(output_folder, test_img_name.replace('_0000',''))
+            ground_truth_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs',
+                                             test_img_name)
+            prediction_path = os.path.join(output_folder, test_img_name)
 
             file_ext = os.path.splitext(img_path)[1]
 
-            data_json_file = os.path.join(os.environ['nnUNet_preprocessed'], os.environ['current_dataset'], 'dataset.json')
+            data_json_file = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'dataset.json')
             with open(data_json_file, 'r') as f:
                 data_json = json.load(f)
             label_num = len(data_json['labels'])
 
+            if file_ext in ['.png', '.bmp', '.tif']:
 
-            if os.environ['MODEL_NAME'] == 'nnunet3d':
-                if file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-                    img = sitk.ReadImage(img_path)
-                    img = sitk.GetArrayFromImage(img)
+                img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
+                img = np.array(img)
+                if len(img.shape) == 2:
+                    img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
 
-                    pred = sitk.ReadImage(prediction_path)
-                    pred = sitk.GetArrayFromImage(pred)
-                    ground_truth = sitk.ReadImage(ground_truth_path)
-                    ground_truth = sitk.GetArrayFromImage(ground_truth)
-                else:
-                    return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
-
-
-                half_layer = int(np.argmax(ground_truth.sum(axis=(1,2))))
-                img = img[half_layer]
-                img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
-
-                mask_result = np.zeros_like(img)
-                img_with_GT = img.copy()
-
-                each_metric = []
-                for i in range(1, label_num):
-                    each_metric.append(calculate_metric_percase(pred == i, ground_truth == i))
+                pred = Image.open(prediction_path)
+                pred = np.array(pred)
+                ground_truth = Image.open(ground_truth_path)
+                ground_truth = np.array(ground_truth)
 
 
-                    mask = np.where(pred[half_layer] == i, 1, 0).astype(np.uint8)
-                    colored_mask = np.zeros_like(img)
-                    colored_mask[mask == 1] = colors[i - 1]
-                    img = cv2.addWeighted(img, 1, colored_mask, 0.5, 0)
-
-                    gt_mask = np.where(ground_truth[half_layer] == i, 1, 0).astype(np.uint8)
-                    colored_mask_gt = np.zeros_like(img_with_GT)
-                    colored_mask_gt[gt_mask == 1] = colors[i - 1]
-                    img_with_GT = cv2.addWeighted(img_with_GT, 1, colored_mask_gt, 0.5, 0)
-
-                    mask_result[mask == 1] = colors[i - 1]
-
-
-
-                metric_list.append(each_metric)
-
-                img_with_mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'visualization_result', test_img_name+'.png')
-                os.makedirs(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'visualization_result'), exist_ok=True)
-                cv2.imwrite(img_with_mask_save_path, img)
-
-                img_with_GT_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'GT_result', test_img_name+'.png')
-                os.makedirs(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'GT_result'), exist_ok=True)
-                cv2.imwrite(img_with_GT_save_path, img_with_GT)
-
-
-                mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'mask_result', test_img_name+'.png')
-                os.makedirs(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'mask_result'), exist_ok=True)
-                cv2.imwrite(mask_save_path, mask_result)
-
-
+            elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
+                img = sitk.ReadImage(img_path)
+                img = sitk.GetArrayFromImage(img)
+                if len(img.shape) == 2:
+                    img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
+                pred = sitk.ReadImage(prediction_path)
+                pred = sitk.GetArrayFromImage(pred)
+                ground_truth = sitk.ReadImage(ground_truth_path)
+                ground_truth = sitk.GetArrayFromImage(ground_truth)
 
             else:
+                return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
 
-                if file_ext in ['.png', '.bmp', '.tif']:
-                    
-                    img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-                    img = np.array(img)
-                    if len(img.shape) == 2:
-                        img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
+            each_metric = []
+            mask_result = np.zeros_like(img)
+            img_with_GT = img.copy()
+            for i in range(1, label_num):
+                each_metric.append(calculate_metric_percase(pred == i, ground_truth == i))
+                mask = np.where(pred == i, 1, 0).astype(np.uint8)
+                colored_mask = np.zeros_like(img)
+                colored_mask[mask == 1] = colors[i - 1]
+                img = cv2.addWeighted(img, 1, colored_mask, 0.5, 0)
 
-                    pred = Image.open(prediction_path)
-                    pred = np.array(pred)
-                    ground_truth = Image.open(ground_truth_path)
-                    ground_truth = np.array(ground_truth)
+                gt_mask = np.where(ground_truth == i, 1, 0).astype(np.uint8)
+                colored_mask_gt = np.zeros_like(img_with_GT)
+                colored_mask_gt[gt_mask == 1] = colors[i - 1]
+                img_with_GT = cv2.addWeighted(img_with_GT, 1, colored_mask_gt, 0.5, 0)
 
+                mask_result[mask == 1] = colors[i - 1]
 
-                elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-                    img = sitk.ReadImage(img_path)
-                    img = sitk.GetArrayFromImage(img)
-                    if len(img.shape) == 2:
-                        img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
-                    pred = sitk.ReadImage(prediction_path)
-                    pred = sitk.GetArrayFromImage(pred)
-                    ground_truth = sitk.ReadImage(ground_truth_path)
-                    ground_truth = sitk.GetArrayFromImage(ground_truth)
+            metric_list.append(each_metric)
+            img_with_mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
+                                                   os.environ['current_dataset'], nnUNetPlans,
+                                                   'visualization_result', test_img_name)
+            os.makedirs(
+                os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+                             nnUNetPlans, 'visualization_result'), exist_ok=True)
+            cv2.imwrite(img_with_mask_save_path, img)
 
-                else:
-                    return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
-                
+            img_with_GT_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
+                                                 os.environ['current_dataset'], nnUNetPlans, 'GT_result',
+                                                 test_img_name)
+            os.makedirs(
+                os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+                             nnUNetPlans, 'GT_result'), exist_ok=True)
+            cv2.imwrite(img_with_GT_save_path, img_with_GT)
 
-                each_metric = []
-                mask_result = np.zeros_like(img)
-                img_with_GT = img.copy()
-                for i in range(1, label_num):
-                    each_metric.append(calculate_metric_percase(pred == i, ground_truth == i))
-                    mask = np.where(pred == i, 1, 0).astype(np.uint8)
-                    colored_mask = np.zeros_like(img)
-                    colored_mask[mask == 1] = colors[i - 1]
-                    img = cv2.addWeighted(img, 1, colored_mask, 0.5, 0)
-
-                    gt_mask = np.where(ground_truth == i, 1, 0).astype(np.uint8)
-                    colored_mask_gt = np.zeros_like(img_with_GT)
-                    colored_mask_gt[gt_mask == 1] = colors[i - 1]
-                    img_with_GT = cv2.addWeighted(img_with_GT, 1, colored_mask_gt, 0.5, 0)
-
-                    mask_result[mask == 1] = colors[i - 1]
-
-                metric_list.append(each_metric)
-                img_with_mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'visualization_result', test_img_name)
-                os.makedirs(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'visualization_result'), exist_ok=True)
-                cv2.imwrite(img_with_mask_save_path, img)
-
-                img_with_GT_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'GT_result', test_img_name)
-                os.makedirs(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'GT_result'), exist_ok=True)
-                cv2.imwrite(img_with_GT_save_path, img_with_GT)
-
-
-                mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'mask_result', test_img_name)
-                os.makedirs(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'mask_result'), exist_ok=True)
-                cv2.imwrite(mask_save_path, mask_result)
-
+            mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
+                                          os.environ['current_dataset'], nnUNetPlans, 'mask_result', test_img_name)
+            os.makedirs(
+                os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+                             nnUNetPlans, 'mask_result'), exist_ok=True)
+            cv2.imwrite(mask_save_path, mask_result)
 
         metric_list = np.array(metric_list)
-        dice_each_case = np.mean(metric_list[:,:,0], axis=1)
-        asd_each_case = np.mean(metric_list[:,:,1], axis=1)
+        dice_each_case = np.mean(metric_list[:, :, 0], axis=1)
+        asd_each_case = np.mean(metric_list[:, :, 1], axis=1)
 
         dice_mean = np.mean(dice_each_case, axis=0)
         dice_std = np.std(dice_each_case, axis=0)
@@ -774,29 +675,27 @@ def run_test():
         asd_mean = np.mean(asd_each_case, axis=0)
         asd_std = np.std(asd_each_case, axis=0)
 
-
-        #save into csv
-        mean_csv_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'test_result_mean.csv')
+        # save into csv
+        mean_csv_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
+                                     os.environ['current_dataset'], nnUNetPlans, 'test_result_mean.csv')
         with open(mean_csv_path, 'w') as f:
             f.write('dice_mean,dice_std,asd_mean,asd_std\n')
             f.write(f'{dice_mean},{dice_std},{asd_mean},{asd_std}\n')
 
-
-        csv_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'test_result.csv')
+        csv_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+                                nnUNetPlans, 'test_result.csv')
         with open(csv_path, 'w') as f:
             f.write('dice,asd\n')
             for each_metric in metric_list:
                 f.write(f'{each_metric[0][0]},{each_metric[0][1]}\n')
-        shutil.copy(img_with_mask_save_path,'static/result_visiual.png')
+        shutil.copy(img_with_mask_save_path, 'static/result_visiual.png')
         with open(output_file, 'a') as f:
             f.write(f'\nimg_with_mask_save_path: {img_with_mask_save_path}\n')
             f.write(f'\nmask_save_path: {mask_save_path}\n')
             f.write(f'\nresult_csv_path: {csv_path}')
             f.write(f'\nDICE: {dice_mean} ± {dice_std}\nASD: {asd_mean} ± {asd_std}')
 
-
     return jsonify({'status': complete_command})
-
 
 
 @app.route('/summary_result', methods=['POST'])
@@ -811,34 +710,33 @@ def summary_result():
     dataset_id = request.json.get('dataset', '')
     os.environ['current_dataset'] = dataset_id
 
-
     nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__2d'
     if os.environ['MODEL_NAME'] == 'nnunet3d':
         nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__3d_fullres'
 
-
-    
     input_folder = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
     test_img_list = os.listdir(input_folder)
     method_list_path = os.path.join(os.environ['nnUNet_results'])
     method_list = os.listdir(method_list_path)
-
 
     for image_case_name in test_img_list:
         if os.environ['MODEL_NAME'] == 'nnunet3d':
             image_case_name = image_case_name + '.png'
 
         images = []
-        
+
         for method_name in method_list:
-            img_with_GT_save_path =  os.path.join(os.environ['nnUNet_results'], method_name, os.environ['current_dataset'], nnUNetPlans, 'GT_result', image_case_name)
+            img_with_GT_save_path = os.path.join(os.environ['nnUNet_results'], method_name,
+                                                 os.environ['current_dataset'], nnUNetPlans, 'GT_result',
+                                                 image_case_name)
             print(img_with_GT_save_path)
             if os.path.exists(img_with_GT_save_path) and len(images) == 0:
                 img = Image.open(img_with_GT_save_path)
                 images.append(img)
 
-
-            img_with_mask_save_path = os.path.join(os.environ['nnUNet_results'], method_name, os.environ['current_dataset'], nnUNetPlans, 'visualization_result', image_case_name)
+            img_with_mask_save_path = os.path.join(os.environ['nnUNet_results'], method_name,
+                                                   os.environ['current_dataset'], nnUNetPlans, 'visualization_result',
+                                                   image_case_name)
             if os.path.exists(img_with_mask_save_path):
                 img = Image.open(img_with_mask_save_path)
                 images.append(img)
@@ -852,23 +750,24 @@ def summary_result():
         # 将每张图片粘贴到新图片上
         x_offset = 0
         for img in images:
-            stitched_image.paste(img, (x_offset,0))
+            stitched_image.paste(img, (x_offset, 0))
             x_offset += img.width
 
-        output_save_path = os.path.join(os.environ['nnUNet_results'], 'summary',os.environ['current_dataset'], 'visualization_result')
+        output_save_path = os.path.join(os.environ['nnUNet_results'], 'summary', os.environ['current_dataset'],
+                                        'visualization_result')
         os.makedirs(output_save_path, exist_ok=True)
         stitched_image.save(os.path.join(output_save_path, image_case_name))
 
-    #save image  into static result_visiual.png
+    # save image  into static result_visiual.png
     shutil.copy(os.path.join(output_save_path, image_case_name), 'static/result_visiual.png')
 
-    
     dice_all = []
     asd_all = []
-    method_exist_all =[]
+    method_exist_all = []
     for method_name in method_list:
 
-        csv_path = os.path.join(os.environ['nnUNet_results'], method_name, os.environ['current_dataset'], nnUNetPlans, 'test_result_mean.csv')
+        csv_path = os.path.join(os.environ['nnUNet_results'], method_name, os.environ['current_dataset'], nnUNetPlans,
+                                'test_result_mean.csv')
         if os.path.exists(csv_path):
             with open(csv_path, 'r') as f:
                 lines = f.readlines()
@@ -876,18 +775,19 @@ def summary_result():
                 asd_mean = float(lines[1].split(',')[2])
                 dice_std = float(lines[1].split(',')[1])
                 asd_std = float(lines[1].split(',')[3])
-                dice_all.append(str(round(float(dice_mean)*100,2)) + ' ± ' + str(round(float(dice_std)*100,2)))
-                asd_all.append(str(round(float(asd_mean),2)) + ' ± ' + str(round(float(asd_std),2)))
+                dice_all.append(str(round(float(dice_mean) * 100, 2)) + ' ± ' + str(round(float(dice_std) * 100, 2)))
+                asd_all.append(str(round(float(asd_mean), 2)) + ' ± ' + str(round(float(asd_std), 2)))
                 method_exist_all.append(method_name)
-            
-    #save into csv
-    os.makedirs(os.path.join(os.environ['nnUNet_results'], 'summary',os.environ['current_dataset']), exist_ok=True)
-    mean_csv_path = os.path.join(os.environ['nnUNet_results'], 'summary',os.environ['current_dataset'], 'test_result_mean.csv')
+
+    # save into csv
+    os.makedirs(os.path.join(os.environ['nnUNet_results'], 'summary', os.environ['current_dataset']), exist_ok=True)
+    mean_csv_path = os.path.join(os.environ['nnUNet_results'], 'summary', os.environ['current_dataset'],
+                                 'test_result_mean.csv')
     with open(mean_csv_path, 'w') as f:
         f.write('method,dice_mean,asd_mean\n')
         for i in range(len(method_exist_all)):
             f.write(f'{method_exist_all[i]},{dice_all[i]},{asd_all[i]}\n')
-    #write csv into command_output.txt
+    # write csv into command_output.txt
     with open(output_file, 'a') as f:
         f.write('\nSummary result:\n')
         f.write(f'{"method":<20}{"dice_mean":<20}{"asd_mean":<20}\n')
@@ -896,27 +796,27 @@ def summary_result():
     return jsonify({'status': "Summary result completed"})
 
 
-
 @app.route('/edit_network', methods=['GET'])
 def edit_network():
     os.system("notepad.exe ./networks/YourNet.py")
 
 
-
 @app.route('/get_output', methods=['GET'])
 def get_output():
     nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__2d'
-    if os.environ['MODEL_NAME'] == 'nnunet3d':
-        nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__3d_fullres'
+    # if os.environ['MODEL_NAME'] == 'nnunet3d':
+    #     nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__3d_fullres'
 
-    dir_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], nnUNetPlans, 'fold_' + os.environ['current_fold'])
+    dir_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+                            nnUNetPlans, 'fold_' + os.environ['current_fold'])
 
-    if os.environ['MODEL_NAME'] == 'nnunet3d':
-        dir_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'], 'nnUNetTrainer__nnUNetPlans__3d_fullres', 'fold_' + os.environ['current_fold'])
+    # if os.environ['MODEL_NAME'] == 'nnunet3d':
+    #     dir_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
+    #                             'nnUNetTrainer__nnUNetPlans__3d_fullres', 'fold_' + os.environ['current_fold'])
 
     try:
         if os.path.exists(dir_path):
-        #output_file = find_latest_txt_file(dir_path)
+            # output_file = find_latest_txt_file(dir_path)
             progress_png = os.path.join(dir_path, 'progress.png')
             try:
                 shutil.copy(progress_png, os.path.join('static', 'progress.png'))
@@ -939,42 +839,22 @@ def get_status():
     return jsonify({'status': process_status})
 
 
-@app.route('/run_command', methods=['POST'])
-def run_command():
-    global process_status
-    with process_lock:
-        if process_status == 'running':
-            current_output = "Output: "
-            for line in current_process.stdout:
-                current_output += line
-            print(current_output)
-            return jsonify({'error': 'A command is already running'})
-
-        command = request.json.get('command', '')
-        
-        complete_command = f"conda activate {conda_env} && {command}"
-        print(complete_command)
-
-        threading.Thread(target=run_command_async, args=(complete_command,)).start()
-        return jsonify({'status': complete_command})
-
-
-
 @app.route('/stop_command', methods=['POST'])
 def stop_command():
     global current_process
     if current_process:
         try:
             print("Terminating process...")
-            kill_process_tree(current_process.pid)
+            # kill_process_tree(current_process.pid)
+            # current_process = None
+            current_process.terminate()
+            current_process.join()
             current_process = None
             return jsonify({'status': 'Command stopped'})
         except:
             return jsonify({'error': 'Stopped'})
     else:
         return jsonify({'error': 'No command is running'})
-
-
 
 
 @app.route('/')
@@ -988,10 +868,9 @@ if __name__ == '__main__':
     os.makedirs(os.path.join(os.getcwd(), 'nnUNet_preprocessed'), exist_ok=True)
     os.makedirs(os.path.join(os.getcwd(), 'nnUNet_results'), exist_ok=True)
 
-
-    os.environ['nnUNet_raw'] = os.path.join(os.getcwd(),'nnUNet_raw')
-    os.environ['nnUNet_preprocessed'] = os.path.join(os.getcwd(),'nnUNet_preprocessed')
-    os.environ['nnUNet_results'] = os.path.join(os.getcwd(),'nnUNet_results')
+    os.environ['nnUNet_raw'] = os.path.join(os.getcwd(), 'nnUNet_raw')
+    os.environ['nnUNet_preprocessed'] = os.path.join(os.getcwd(), 'nnUNet_preprocessed')
+    os.environ['nnUNet_results'] = os.path.join(os.getcwd(), 'nnUNet_results')
 
     if os.environ.get('current_dataset') is None:
         os.environ['current_dataset'] = 'Dataset0'
@@ -1000,12 +879,10 @@ if __name__ == '__main__':
         os.environ['current_fold'] = '0'
 
     with open(output_file, 'w') as f:
-            f.write("\n")
-
+        f.write("\n")
 
     webbrowser.open("http://127.0.0.1:5000/", new=2)
-    
+
     app.run(debug=True, host='0.0.0.0', port=5000)
 
-
-#todo list: resize, 3d, 优化去除fold选择
+# todo list: resize, 3d, 优化去除fold选择
