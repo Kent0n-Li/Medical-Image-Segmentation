@@ -18,6 +18,9 @@
             <h2 class="text-center">Medical Image Segmentation Benchmark</h2>
             <form id="command-form">
 
+
+
+
                 <!-- Model Selection Modal -->
                 <div class="modal fade" id="modelSelectionModal" tabindex="-1" aria-labelledby="modelSelectionModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
@@ -27,14 +30,7 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-<!--                                <div class="form-check">-->
-<!--                                    <input class="form-check-input" type="checkbox" value="nnunet" id="nnunet">-->
-<!--                                    <label class="form-check-label" for="nnunet">nnUNet</label>-->
-<!--                                </div>-->
-<!--                                <div class="form-check">-->
-<!--                                    <input class="form-check-input" type="checkbox" value="nnsam" id="nnsam">-->
-<!--                                    <label class="form-check-label" for="nnsam">nnSAM</label>-->
-<!--                                </div>-->
+
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="unet" id="unet">
                                     <label class="form-check-label" for="unet">UNet</label>
@@ -59,10 +55,44 @@
                                     <input class="form-check-input" type="checkbox" value="r2unet" id="r2unet">
                                     <label class="form-check-label" for="r2unet">R2UNet</label>
                                 </div>
-<!--                                <div class="form-check">-->
-<!--                                    <input class="form-check-input" type="checkbox" value="nnunet3d" id="nnunet3d">-->
-<!--                                    <label class="form-check-label" for="nnunet3d">nnUNet (3D)</label>-->
-<!--                                </div>-->
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="gtunet" id="gtunet">
+                                    <label class="form-check-label" for="gtunet">GT UNet</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="bisenet" id="bisenet">
+                                    <label class="form-check-label" for="bisenet">BiSeNet</label>
+                                </div>
+
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="ddrnet" id="ddrnet">
+                                    <label class="form-check-label" for="ddrnet">DDRNet</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="deeplabv3plus" id="deeplabv3plus">
+                                    <label class="form-check-label" for="deeplabv3plus">DeepLabV3+</label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="hrnet" id="hrnet">
+                                    <label class="form-check-label" for="hrnet">HRNet</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="segnet" id="segnet">
+                                    <label class="form-check-label" for="segnet">SegNet</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="fcnresnet" id="fcnresnet">
+                                    <label class="form-check-label" for="fcnresnet">FCN ResNet</label>
+                                </div>
+
+
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" value="yournet" id="yournet">
                                     <label class="form-check-label" for="yournet">Your Network</label>
@@ -151,10 +181,16 @@
                         <option value="unet">UNet</option>
                         <option value="transunet">TransUNet</option>
                         <option value="swinunet">SwinUNet</option>
+                        <option value="gtunet">GT UNet</option>
                         <option value="unetpp">UNet++</option>
                         <option value="attunet">AttentionUNet</option>
                         <option value="r2unet">R2UNet</option>
-<!--                        <option value="nnunet3d">nnUNet (3D)</option>-->
+                        <option value="bisenet">BiSeNet</option>
+                        <option value="ddrnet">DDRNet</option>
+                        <option value="deeplabv3plus">DeepLabV3+</option>
+                        <option value="hrnet">HRNet</option>
+                        <option value="segnet">SegNet</option>
+                        <option value="fcnresnet">FCN ResNet</option>
                         <option value="yournet">Your Network</option>
                         <!-- Add more models here -->
                     </select>
@@ -176,12 +212,90 @@
                 </div>
 
 
+             
                 
+                <!-- Data Augmentation Modal -->
+                <div class="modal fade" id="dataAugmentationModal" tabindex="-1" aria-labelledby="dataAugmentationModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h5 class="modal-title" id="dataAugmentationModalLabel">Data Augmentation</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                        <p class="text-muted">
+                            The following augmentation will be applied to only train dataset.
+                        </p>                            
+                        
+
+                        <div class="row mb-3">
+                            <div class="col-auto">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="RandomBrightnessContrast-Check">
+                                    <label class="form-check-label" for="RandomBrightnessContrast-Check">RandomBrightnessContrast</label>
+                                </div>
+                            </div>
+                            
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text">brightness_limit</span>
+                                    <input type="text" class="form-control" placeholder="min: -1.00" id="brightness_limit_min" value="0">
+                                    <input type="text" class="form-control" placeholder="max: 1.00" id="brightness_limit_max" value="0">
+                                    </div>  
+                            </div>         
+                            <div class="col">
+                                <div class="input-group">
+                                    <span class="input-group-text">contrast_limit</span>
+                                    <input type="text" class="form-control" placeholder="min: -1.00" id="contrast_limit_min" value="0">
+                                    <input type="text" class="form-control" placeholder="max: 1.00" id="contrast_limit_max" value="0">
+                                    </div>  
+                            </div>   
+                        </div> 
+                                
+                                
+  
+
+                            <div class="row mb-3">
+                                <div class="col-auto">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="RandomRotate90-Check">
+                                        <label class="form-check-label" for="RandomRotate90-Check">RandomRotate90</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="VerticalFlip-Check">
+                                        <label class="form-check-label" for="VerticalFlip-Check">VerticalFlip</label>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="HorizontalFlip-Check">
+                                        <label class="form-check-label" for="HorizontalFlip-Check">HorizontalFlip</label>
+                                    </div>
+                                </div>                            
+                            </div>
+                 
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" id="aug-dataset-button" class="btn btn-primary">Confirm</button>
+                            </div>
+                        
+                        </div>
+                    </div>
+                </div>
+                
+
+                                   
                 <div class="d-flex justify-content-center flex-wrap mb-3">
                     <button type="button" class="btn btn-secondary mb-2 mx-2" data-bs-toggle="modal" data-bs-target="#importDatasetModal">
                         <i class="fas fa-upload"></i> Import Dataset
                     </button>
-                    <button id="preprocess-button" class="btn btn-info mb-2 mx-2"><i class="fas fa-cogs"></i> Data Preprocess</button>
+                    <button type="button" class="btn btn-dark mb-2 mx-2" data-bs-toggle="modal" data-bs-target="#dataAugmentationModal">
+                        <i class="fas fa-cogs"></i> Data Augmentation
+                    </button>  
                     <button id="edit-network-button" class="btn btn-primary mb-2 mx-2"><i class="fas fa-edit"></i> Edit Network</button>
                     <button id="train-button" class="btn btn-success mb-2 mx-2"><i class="fas fa-play"></i> Train</button>
                     <button id="test-button" class="btn btn-warning mb-2 mx-2"><i class="fas fa-flask"></i> Test</button>
@@ -195,8 +309,7 @@
                     <button id="stop-button" class="btn btn-danger mb-2 mx-2"><i class="fas fa-stop"></i> Stop</button>
                 </div>
                 
-                
-                
+
 
                 <div id="loading" style="display: none;">
                     <div style="display: flex; justify-content: center;">
@@ -282,6 +395,8 @@ document.getElementById("start-auto-button").addEventListener("click", function(
     });
 
 });
+
+
 
 
 
@@ -391,11 +506,46 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
+document.getElementById("aug-dataset-button").addEventListener("click", function(e) {
 
-document.getElementById("preprocess-button").addEventListener("click", function(e) {
-    e.preventDefault(); 
-    runDataPreprocess();
+    const RandomBrightnessContrast = document.getElementById("RandomBrightnessContrast-Check").checked;
+    const brightness_limit_min = document.getElementById("brightness_limit_min").value;
+    const brightness_limit_max = document.getElementById("brightness_limit_max").value;
+    const contrast_limit_min = document.getElementById("contrast_limit_min").value;
+    const contrast_limit_max = document.getElementById("contrast_limit_max").value;
+    const RandomRotate90 = document.getElementById("RandomRotate90-Check").checked;
+    const VerticalFlip = document.getElementById("VerticalFlip-Check").checked;
+    const HorizontalFlip = document.getElementById("HorizontalFlip-Check").checked;
+    
+    // const testing_label_path = document.getElementById("testing_label_path").value;
+    const dataset = document.getElementById("dataset").value;
+    // const imageSize = document.getElementById("image-size").value;
+    console.log( RandomBrightnessContrast, brightness_limit_min, brightness_limit_max, contrast_limit_min, contrast_limit_max, RandomRotate90, VerticalFlip, HorizontalFlip, dataset);
+
+    fetch("/data_aug", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ RandomBrightnessContrast:RandomBrightnessContrast, brightness_limit_min:brightness_limit_min, brightness_limit_max:brightness_limit_max, contrast_limit_min:contrast_limit_min, contrast_limit_max:contrast_limit_max, RandomRotate90:RandomRotate90, VerticalFlip:VerticalFlip, HorizontalFlip:HorizontalFlip, dataset:dataset })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status) {
+            alert(data.status);
+            window.location.reload();
+        } else if (data.error) {
+            alert("Error: " + data.error);
+        }
+    })
+    .catch(error => {
+        alert("Error: " + error);
+    });
 });
+
+
+
+
 
 function runDataPreprocess() {
     const model_name = document.getElementById("model").value;
