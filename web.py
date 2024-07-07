@@ -14,10 +14,11 @@ import webbrowser
 import cv2
 from config import *
 from scipy.spatial import cKDTree
-
+import time
 from test import test_model
 from train import train
-
+import subprocess
+import threading
 app = Flask(__name__)
 
 # 用于保存正在运行的进程
@@ -25,9 +26,9 @@ current_process = None
 process_lock = Lock()
 # 全局变量，用于保存当前命令的输出
 current_output = ""
-
 # 用于保存进程的状态 ('running', 'completed', 'not_started')
-process_status = 'not_started'
+os.environ['process_status'] = 'not_started'
+
 conda_env = os.path.basename(sys.prefix)
 
 
@@ -99,8 +100,11 @@ def reader_thread(process, f):
         f.write(line)
 
 
-def run_command_async(command, batch_size=None, max_epochs=None, base_lr=None):
-    global current_output, process_status, current_process
+
+
+def run_command_async(command):
+    global current_output, current_process
+
     print("Starting run_command_async")
     try:
         with process_lock:
@@ -112,33 +116,50 @@ def run_command_async(command, batch_size=None, max_epochs=None, base_lr=None):
                 white_image = Image.new("RGB", (50, 50), "white")
                 white_image.save('static/result_visiual.png')
 
+        
             current_output = "Output: "
-            process_status = 'running'
-            # env = os.environ.copy()
-            if command.startswith('train'):
-                train(batch_size, max_epochs, base_lr)
-            elif command.startswith('test'):
-                test_model()
+            os.environ['process_status'] = 'running'
+            env = os.environ.copy()
+            print(command)
+            current_process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                               text=True, env=env)
 
-            # print("Process started")
-            # with open(output_file, 'w') as f:
-            #     f.write("Process started")
-            #     f.flush()
-            #     for line in current_process.stdout:
-            #         print(line)
-            #         f.write(line)
-            #         f.flush()
+            print("Process started")
+            with open(output_file, 'w') as f:
+                f.write("Process started")
+                f.flush()
+                for line in current_process.stdout:
+                    print(line)
+            #        f.write(line)
+            #        f.flush()
 
         with process_lock:
             print("Process completed")
-            process_status = 'completed'
+            os.environ['process_status'] = 'completed'
+            print("set Process completed")
             current_process = None
 
+
     except Exception as e:
-        print(f"An error occurred: {e}")
         with process_lock:
-            process_status = 'not_started'
+            os.environ['process_status'] = 'not_started'
             current_process = None
+
+
+@app.route('/stop_command', methods=['POST'])
+def stop_command():
+    global current_process
+    if current_process:
+        try:
+            print("Terminating process...")
+            kill_process_tree(current_process.pid)
+            current_process = None
+            return jsonify({'status': 'Command stopped'})
+        except:
+            return jsonify({'error': 'Stopped'})
+    else:
+        return jsonify({'error': 'No command is running'})
+    
 
 
 def write_output_from_queue_to_file(output_queue):
@@ -189,7 +210,7 @@ def find_latest_txt_file(directory):
 
 
 def dataset_name_exists(target_name):
-    base_path = os.environ['nnUNet_raw']
+    base_path = os.environ['medseg_raw']
     for item in os.listdir(base_path):
         if os.path.isdir(os.path.join(base_path, item)):
             if item.split('_')[-1] == target_name:
@@ -198,12 +219,12 @@ def dataset_name_exists(target_name):
 
 
 def resize_image(mask_path, output_path, new_size):
-    print(mask_path)
     file_ext = os.path.splitext(mask_path)[1]
-    if file_ext in ['.png', '.bmp', '.tif']:
-        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+    if file_ext in ['.png', '.bmp', '.tif', '.jpg', '.jpeg']:
+        mask = cv2.imread(mask_path, cv2.IMREAD_UNCHANGED)
         mask_resized = cv2.resize(mask, (new_size, new_size), interpolation=cv2.INTER_NEAREST)
         cv2.imwrite(output_path, mask_resized)
+        print_web(f"Image resized: {output_path}")
 
 
 @app.route('/full_auto', methods=['POST'])
@@ -211,14 +232,11 @@ def full_auto():
     data = request.json
     selected_models = data.get('models_list', [])
     dataset = data.get('dataset')
-
     batchSize = data.get('batchSize', '4')
     totalEpochs = data.get('totalEpochs', '100')
     learningRate = data.get('learningRate', '0.01')
 
     try:
-        response = data_preprocess()
-
         for model in selected_models:
             with app.test_client() as client:
                 # Call train_model endpoint
@@ -251,7 +269,7 @@ def full_auto():
 
 @app.route('/get_paths', methods=['GET'])
 def get_paths():
-    raw_path = os.environ['nnUNet_raw']
+    raw_path = os.environ['medseg_raw']
     try:
         all_files_and_folders = os.listdir(raw_path)
         dataset_list = [f for f in all_files_and_folders if os.path.isdir(os.path.join(raw_path, f))]
@@ -277,25 +295,25 @@ def import_dataset():
     if dataset_name_exists(dataset_name):
         return jsonify({'error': f"Dataset with name {dataset_name} already exists!"})
 
-    # 目标路径（你可以根据需要更改）
-    dataset_id = len(os.listdir(os.environ['nnUNet_raw'])) + 1
+
+    dataset_id = len(os.listdir(os.environ['medseg_raw'])) + 1
     dataset_id = "{:03}".format(dataset_id)
     dataset_name = f"Dataset{dataset_id}_{dataset_name}"
     os.environ['current_dataset'] = dataset_name
 
-    # Define target paths
     target_paths = {
-        'training_image': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTr'),
-        'training_label': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr'),
-        'testing_image': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs'),
-        'testing_label': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs'),
-        'validation_image': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesVal'),
-        'validation_label': os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsVal'),
+        'training_image': os.path.join(os.environ['medseg_raw'], os.environ['current_dataset'], 'imagesTr'),
+        'training_label': os.path.join(os.environ['medseg_raw'], os.environ['current_dataset'], 'labelsTr'),
+        'testing_image': os.path.join(os.environ['medseg_raw'], os.environ['current_dataset'], 'imagesTs'),
+        'testing_label': os.path.join(os.environ['medseg_raw'], os.environ['current_dataset'], 'labelsTs'),
+        'validation_image': os.path.join(os.environ['medseg_raw'], os.environ['current_dataset'], 'imagesVal'),
+        'validation_label': os.path.join(os.environ['medseg_raw'], os.environ['current_dataset'], 'labelsVal'),
     }
+
     try:
-        # 创建目标文件夹
-        for path in target_paths.values():
-            os.makedirs(path, exist_ok=True)
+        # create target directories
+        for path_each in target_paths.values():
+            os.makedirs(path_each, exist_ok=True)
 
         train_img_list = os.listdir(training_image_path)
         split_index = random_shuffle_with_spilt_index(train_img_list, validation_factor)
@@ -316,10 +334,85 @@ def import_dataset():
         test_label_list = os.listdir(testing_label_path)
         copy_and_resize_images(testing_label_path, target_paths['testing_label'], test_label_list, image_size)
 
-        return jsonify({'status': 'Dataset imported successfully'})
+        with process_lock:
+            complete_command = f"conda activate {conda_env} && python data_process.py"
+            print_web(complete_command)
+            threading.Thread(target=run_command_async, args=(complete_command,)).start()
+
+
+        return jsonify({'status': 'The dataset is being preprocessed, which may take some time.'})
 
     except Exception as e:
         return jsonify({'error': str(e)})
+
+def save_dataset_json(dataset_id, dataset_name, image_size, img_channel, label_class_num):
+    dataset_json = {
+        "id": dataset_id,
+        "name": dataset_name,
+        "imgae_size": image_size,
+        "img_channel": img_channel,
+        "label_class_num": label_class_num,
+        "RandomBrightnessContrast": "False",
+        "brightness_limit_min": "0",
+        "brightness_limit_max": "0",
+        "contrast_limit_min": "0",
+        "contrast_limit_max": "0",
+        "RandomRotate90": "False",
+        "VerticalFlip": "False",
+        "HorizontalFlip": "False",
+    }
+    with open(os.path.join(os.environ['medseg_raw'], dataset_name, 'dataset.json'), 'w') as f:
+        json.dump(dataset_json, f)
+
+
+
+
+@app.route('/data_aug', methods=['POST'])
+def data_augmentation():
+    dataset_id = request.json.get('dataset', '')
+    os.environ['current_dataset'] = dataset_id
+
+    #        body: JSON.stringify({ Blur:Blur, blur_limit_min_Blur:blur_limit_min_Blur, blur_limit_max_Blur:blur_limit_max_Blur, RandomBrightnessContrast:RandomBrightnessContrast, brightness_limit_min:brightness_limit_min, brightness_limit_max:brightness_limit_max, contrast_limit_min:contrast_limit_min, contrast_limit_max:contrast_limit_max, RandomRotate90:RandomRotate90, VerticalFlip:VerticalFlip, HorizontalFlip:HorizontalFlip, dataset:dataset })
+
+
+    RandomBrightnessContrast = request.json.get('RandomBrightnessContrast', 'False')
+    brightness_limit_min = request.json.get('brightness_limit_min', '0')
+    brightness_limit_max = request.json.get('brightness_limit_max', '0')
+    contrast_limit_min = request.json.get('contrast_limit_min', '0')
+    contrast_limit_max = request.json.get('contrast_limit_max', '0')
+    RandomRotate90 = request.json.get('RandomRotate90', 'False')
+    VerticalFlip = request.json.get('VerticalFlip', 'False')
+    HorizontalFlip = request.json.get('HorizontalFlip', 'False')
+
+    #add into dataset.json
+    data_json_file = os.path.join(os.environ['medseg_raw'], os.environ['current_dataset'], 'dataset.json')
+    with open(data_json_file) as f:
+        json_data = json.load(f)
+        json_data['RandomBrightnessContrast'] = RandomBrightnessContrast
+        json_data['brightness_limit_min'] = brightness_limit_min
+        json_data['brightness_limit_max'] = brightness_limit_max
+        json_data['contrast_limit_min'] = contrast_limit_min
+        json_data['contrast_limit_max'] = contrast_limit_max
+        json_data['RandomRotate90'] = RandomRotate90
+        json_data['VerticalFlip'] = VerticalFlip
+        json_data['HorizontalFlip'] = HorizontalFlip
+
+    with open(data_json_file, 'w') as f:
+        json.dump(json_data, f)
+        print(json_data)
+
+        print_web(f"Data augmentation started for {dataset_id}")
+    
+    return jsonify({'status': 'Data augmentation completed'})
+
+
+def convert_jpg_to_png_all_from_path(dir_path):
+    """Converts all JPG files to PNG format."""
+    for img_name in os.listdir(dir_path):
+        img_path = os.path.join(dir_path, img_name)
+        if os.path.splitext(img_name)[1] in ['.jpg', '.jpeg']:
+            new_path = os.path.join(dir_path, os.path.splitext(img_name)[0] + '.png')
+            convert_jpg_to_png(img_path, new_path)
 
 
 def random_shuffle_with_spilt_index(train_img_list, factor):
@@ -335,142 +428,63 @@ def copy_and_resize_images(source_path, target_path, file_list, image_size):
         source_file = os.path.join(source_path, item)
         target_file = os.path.join(target_path, item)
         shutil.copy2(source_file, target_file)
+        print_web(f"Image copied: {target_file}")
         resize_image(target_file, target_file, image_size)
 
 
-@app.route('/data_preprocess', methods=['POST'])
-def data_preprocess():
-    global process_status
-    with process_lock:
-        if process_status == 'running':
-            return jsonify({'error': 'A command is already running'})
+def find_unique_labels(labelTr_path):
+    """
+    Finds unique labels in the label image.
+    """
+    label_file_list = []
+    count = 0
+    for label_name in os.listdir(labelTr_path):
+        label_path = os.path.join(labelTr_path, label_name)
+        file_ext = os.path.splitext(label_name)[1]
+        count += 1
+        if count > 30:
+            break
 
-        model_name = request.json.get('model_name', '')
-        dataset = request.json.get('dataset', '') if request.json.get('dataset', '') else 'Dataset'
-        os.environ['MODEL_NAME'] = model_name
-        os.environ['current_dataset'] = dataset
-
-        imageTr_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTr')
-        labelTr_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTr')
-        imageTs_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
-        labelTs_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs')
-        num_train = len(os.listdir(imageTr_path))
-
-        label_file_list = []
-        count = 0
-        for label_name in os.listdir(labelTr_path):
-            label_path = os.path.join(labelTr_path, label_name)
-            file_ext = os.path.splitext(label_name)[1]
-            count += 1
-            if count > 20:
-                break
-
-            # Question: should I use a new loop to convert all the jpg to pngs.
-            # Check and convert JPG to PNG before further processing
-            if file_ext == '.jpg':
-                png_label_name = os.path.splitext(label_name)[0] + '.png'
-                png_label_path = os.path.join(labelTr_path, png_label_name)
-                convert_jpg_to_png(label_path, png_label_path)
-                # Update label_path and file_ext for further processing
-                label_path = png_label_path
-                file_ext = '.png'
-
-            if file_ext in ['.png', '.bmp', '.tif']:
-                nplabel = Image.open(label_path).convert("L")
-                nplabel = np.array(nplabel)
-                label_file_list.append(nplabel)
-            elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-                nplabel = sitk.ReadImage(label_path)
-                nplabel = sitk.GetArrayFromImage(nplabel)
-                label_file_list.append(nplabel)
-            else:
-                return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
-
-        unique_values = np.unique(np.array(label_file_list))
-        print(unique_values)
-
-        for label_name in os.listdir(labelTr_path):
-            label_path = os.path.join(labelTr_path, label_name)
-            file_ext = os.path.splitext(label_name)[1]
-
-            # TODO convert JPG to PNG becuase some methods don't support .jpg
-            if file_ext == '.jpg':
-                png_label_name = os.path.splitext(label_name)[0] + '.png'
-                png_label_path = os.path.join(labelTr_path, png_label_name)
-                convert_jpg_to_png(label_path, png_label_path)
-                # Update label_path and file_ext for further processing
-                label_path = png_label_path
-                file_ext = '.png'
-
-            if file_ext in ['.png', '.bmp', '.tif']:
-                nplabel = Image.open(label_path).convert("L")
-                nplabel = np.array(nplabel)
-            elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-                nplabel = sitk.ReadImage(label_path)
-                nplabel = sitk.GetArrayFromImage(nplabel)
-            else:
-                return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
-
-            new_label = np.searchsorted(unique_values, nplabel)
-            new_label = Image.fromarray(new_label.astype(np.uint8))
-            new_label.save(label_path)
-
-        for label_name in os.listdir(labelTs_path):
-            label_path = os.path.join(labelTs_path, label_name)
-            file_ext = os.path.splitext(label_name)[1]
-
-            if file_ext in ['.png', '.bmp', '.tif']:
-                nplabel = Image.open(label_path).convert("L")
-                nplabel = np.array(nplabel)
-                new_label = np.searchsorted(unique_values, nplabel)
-                new_label = Image.fromarray(new_label.astype(np.uint8), "L")
-                new_label.save(label_path)
-            elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-                nplabel = sitk.ReadImage(label_path)
-                nplabel_array = sitk.GetArrayFromImage(nplabel)
-                new_label_array = np.searchsorted(unique_values, nplabel_array)
-                new_label_sitk = sitk.GetImageFromArray(new_label_array.astype(np.uint8))
-                new_label_sitk.CopyInformation(nplabel)
-                sitk.WriteImage(new_label_sitk, label_path)
-            else:
-                return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
-
-        label_info_set = {}
-        label_info_set['background'] = 0
-        for i in range(1, len(unique_values)):
-            label_info_set['lab' + str(unique_values[i])] = i
-
-        imageTr_list = os.listdir(imageTr_path)
-
-        img_name = imageTr_list[0]
-        img_path = os.path.join(imageTr_path, img_name)
-        file_ext = os.path.splitext(img_name)[1]
         if file_ext in ['.png', '.bmp', '.tif']:
-            npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-            npimg = np.array(npimg)
+            nplabel = Image.open(label_path).convert("L")
+            nplabel = np.array(nplabel)
+            label_file_list.append(nplabel)
         elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-            npimg = sitk.ReadImage(img_path)
-            npimg = sitk.GetArrayFromImage(npimg)
+            nplabel = sitk.ReadImage(label_path)
+            nplabel = sitk.GetArrayFromImage(nplabel)
+            label_file_list.append(nplabel)
         else:
-            return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
+            return jsonify({'status': 'Please use png, nii.gz, or nii format.'})
 
-        image_info_set = {}
-        if len(npimg.shape) == 2:
-            image_info_set['0'] = 'channel0'
-        elif len(npimg.shape) == 3:
-            for i in range(npimg.shape[2]):
-                image_info_set[str(i)] = 'channel' + str(i)
+    flattened_labels = [np.ravel(label) for label in label_file_list]
+    unique_values = np.unique(np.concatenate(flattened_labels))
+    print(unique_values)
+    print_web(f"Unique values found: {unique_values}")
 
-        if file_ext == '.gz':
-            file_ext = '.nii.gz'
+    return unique_values
 
-        generate_dataset_json(os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset']), image_info_set,
-                              label_info_set,
-                              num_train, file_ext, dataset_name=os.environ['current_dataset'])
+def convert_label_by_searchsorted(dir_path, unique_values):
+    """
+    Converts label image to unique values using searchsorted.
+    """
+    for label_name in os.listdir(dir_path):
+        label_path = os.path.join(dir_path, label_name)
+        file_ext = os.path.splitext(label_path)[1]
+        if file_ext in ['.png', '.bmp', '.tif']:
+            nplabel = Image.open(label_path).convert("L")
+            nplabel = np.array(nplabel)
+        elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
+            nplabel = sitk.ReadImage(label_path)
+            nplabel = sitk.GetArrayFromImage(nplabel)
+        else:
+            return jsonify({'status': 'Please use png, nii.gz, or nii format.'})
 
-        dataset_id = dataset.split('_')[0].replace('Dataset', '')
+        new_label = np.searchsorted(unique_values, nplabel)
+        new_label = Image.fromarray(new_label.astype(np.uint8))
+        new_label.save(label_path)
 
-        return jsonify({'status': 'Preprocessing started'})
+        print_web(f"Label converted: {label_path}")
+
 
 
 def convert_jpg_to_png(jpg_path, png_path):
@@ -478,16 +492,15 @@ def convert_jpg_to_png(jpg_path, png_path):
     with Image.open(jpg_path) as img:
         img.save(png_path, "PNG")
     os.remove(jpg_path)  # Delete the original JPG file after conversion
+    print_web(f"JPG to PNG conversion completed for {jpg_path}")
 
 
 @app.route('/train_model', methods=['POST'])
 def train_model():
-    global process_status
+    print("Starting train_model")
     with process_lock:
-        if process_status == 'running':
+        if os.environ['process_status'] == 'running':
             return jsonify({'error': 'A command is already running'})
-        # fold = os.environ['current_fold']
-
         model_name = request.json.get('model_name', '')
         os.environ['MODEL_NAME'] = model_name
         dataset_id = request.json.get('dataset', '')
@@ -498,211 +511,55 @@ def train_model():
         learningRate = request.json.get('learningRate', '0.01')
 
         complete_command = f"conda activate {conda_env} && python train.py --batch_size {batchSize} --max_epochs {totalEpochs} --base_lr {learningRate}"
-        batchSize = int(batchSize)
-        totalEpochs = int(totalEpochs)
-        learningRate = float(learningRate)
 
         print(complete_command)
-        # Status: conda activate nnsam & & python train.py - -batch_size 4 - -max_epochs 2 - -base_lr 0.01
-        # TODO convert it from command line to python code
-        # train_model(batch_size=batchSize, max_epochs=totalEpochs, base_lr=learningRate)
 
-        training_process = Process(target=run_command_async,
-                                   args=("train", batchSize, totalEpochs, learningRate))
-        training_process.start()
-        training_process.join()
-        print("Training process Ended")
-        # threading.Thread(target=run_command_async, args=(complete_command,)).start()
+        threading.Thread(target=run_command_async, args=(complete_command,)).start()
         return jsonify({'status': complete_command})
 
 
 @app.route('/run_test', methods=['POST'])
 def run_test():
-    global process_status
+    
     with process_lock:
-        if process_status == 'running':
+        if os.environ['process_status'] == 'running':
             return jsonify({'error': 'A command is already running'})
 
-    model_name = request.json.get('model_name', '')
-    os.environ['MODEL_NAME'] = model_name
-    dataset_id = request.json.get('dataset', '')
-    os.environ['current_dataset'] = dataset_id
+        model_name = request.json.get('model_name', '')
+        os.environ['MODEL_NAME'] = model_name
+        dataset_id = request.json.get('dataset', '')
+        os.environ['current_dataset'] = dataset_id
 
-    nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__2d'
-    if os.environ['MODEL_NAME'] == 'nnunet3d':
-        nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__3d_fullres'
+        
+        
+        input_folder = os.path.join(os.environ['medseg_raw'], os.environ['current_dataset'], 'imagesTs')
+        output_folder = os.path.join(os.environ['medseg_results'], os.environ['current_dataset'], os.environ['MODEL_NAME'], 'test_pred')
+        os.makedirs(output_folder, exist_ok=True)
 
-    val_folder = os.path.join(os.environ['nnUNet_raw'], dataset_id, f'imagesVal')
-    if not os.path.exists(val_folder):
-        os.makedirs(val_folder, exist_ok=True)
-        src_dir_path = os.path.join(os.environ['nnUNet_raw'], dataset_id, 'imagesTr')
-        src_list = os.listdir(src_dir_path)
-        split_index = random_shuffle_with_spilt_index(src_list, validation_factor)
-        for item in src_list[:split_index]:
-            src_path = os.path.join(os.environ['nnUNet_raw'], dataset_id, 'imagesTr', item)
-            dest_path = os.path.join(val_folder, item)
-            shutil.copy(src_path, dest_path)
+        complete_command = f"conda activate {conda_env} && python test.py"
 
-    # dataset_id = dataset_id.split('_')[0].replace('Dataset', '')
-    fold = os.environ['current_fold']
-    ckpt_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-                             nnUNetPlans, f'fold_{fold}', 'checkpoint_final.pth')
-    if os.path.exists(
-            os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-                         nnUNetPlans, f'fold_{fold}', 'checkpoint_best.pth')):
-        shutil.copy(os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-                                 nnUNetPlans, f'fold_{fold}', 'checkpoint_best.pth'), ckpt_path)
+        print(input_folder)
+        print(complete_command)
 
-    input_folder = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
-    output_folder = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-                                 nnUNetPlans, 'test_pred')
-    os.makedirs(output_folder, exist_ok=True)
+        command_thread = threading.Thread(target=run_command_async, args=(complete_command,))
+        command_thread.start()
 
-    # if os.environ['MODEL_NAME'] == 'nnunet' or os.environ['MODEL_NAME'] == 'nnsam': complete_command = f"conda
-    # activate {conda_env} && nnUNetv2_predict -i {input_folder} -o {output_folder} -d {dataset_id} -c 2d -f {fold}"
-    # elif os.environ['MODEL_NAME'] == 'nnunet3d': complete_command = f"conda activate {conda_env} &&
-    # nnUNetv2_predict -i {input_folder} -o {output_folder} -d {dataset_id} -c 3d_fullres -f {fold}" else:
-
-    complete_command = f"conda activate {conda_env} && python test.py"
-
-    print(input_folder)
-    print(complete_command)
-    # conda activate nnsam & & python test.py
-    # Namespace(max_iterations=30000, max_epochs=200, n_gpu=1, deterministic=1, base_lr=0.01, img_size=224, seed=1234,
-    #           zip=False, cache_mode='part', resume=None, accumulation_steps=None, use_checkpoint=False,
-    #           amp_opt_level='O1', tag=None, eval=False, throughput=False, batch_size=0)
-
-    # TODO convert it from command line to python code
-    # threading.Thread(target=run_command_async, args=(complete_command,)).start()
-
-    test_process = Process(target=run_command_async, args=("test", 4, 2, 0.01))
-    test_process.start()
-    test_process.join()
-    print("Test process started")
 
     with process_lock:
-        print(input_folder)
-        test_img_list_ori = os.listdir(input_folder)
-        test_img_list = [test_img for test_img in test_img_list_ori]
-        metric_list = []
-        for test_img_name in test_img_list:
-            img_path = os.path.join(input_folder, test_img_name)
-            ground_truth_path = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'labelsTs',
-                                             test_img_name)
-            prediction_path = os.path.join(output_folder, test_img_name)
-
-            file_ext = os.path.splitext(img_path)[1]
-
-            data_json_file = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'dataset.json')
-            with open(data_json_file, 'r') as f:
-                data_json = json.load(f)
-            label_num = len(data_json['labels'])
-
-            if file_ext in ['.png', '.bmp', '.tif']:
-
-                img = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-                img = np.array(img)
-                if len(img.shape) == 2:
-                    img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
-
-                pred = Image.open(prediction_path)
-                pred = np.array(pred)
-                ground_truth = Image.open(ground_truth_path)
-                ground_truth = np.array(ground_truth)
-
-
-            elif file_ext in ['.gz', '.nrrd', '.mha', '.nii']:
-                img = sitk.ReadImage(img_path)
-                img = sitk.GetArrayFromImage(img)
-                if len(img.shape) == 2:
-                    img = np.repeat(img[:, :, np.newaxis], 3, axis=2)
-                pred = sitk.ReadImage(prediction_path)
-                pred = sitk.GetArrayFromImage(pred)
-                ground_truth = sitk.ReadImage(ground_truth_path)
-                ground_truth = sitk.GetArrayFromImage(ground_truth)
-
-            else:
-                return jsonify({'status': 'Please use png, bmp, tif, nii.gz, nrrd or mha format.'})
-
-            each_metric = []
-            mask_result = np.zeros_like(img)
-            img_with_GT = img.copy()
-            for i in range(1, label_num):
-                each_metric.append(calculate_metric_percase(pred == i, ground_truth == i))
-                mask = np.where(pred == i, 1, 0).astype(np.uint8)
-                colored_mask = np.zeros_like(img)
-                colored_mask[mask == 1] = colors[i - 1]
-                img = cv2.addWeighted(img, 1, colored_mask, 0.5, 0)
-
-                gt_mask = np.where(ground_truth == i, 1, 0).astype(np.uint8)
-                colored_mask_gt = np.zeros_like(img_with_GT)
-                colored_mask_gt[gt_mask == 1] = colors[i - 1]
-                img_with_GT = cv2.addWeighted(img_with_GT, 1, colored_mask_gt, 0.5, 0)
-
-                mask_result[mask == 1] = colors[i - 1]
-
-            metric_list.append(each_metric)
-            img_with_mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
-                                                   os.environ['current_dataset'], nnUNetPlans,
-                                                   'visualization_result', test_img_name)
-            os.makedirs(
-                os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-                             nnUNetPlans, 'visualization_result'), exist_ok=True)
-            cv2.imwrite(img_with_mask_save_path, img)
-
-            img_with_GT_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
-                                                 os.environ['current_dataset'], nnUNetPlans, 'GT_result',
-                                                 test_img_name)
-            os.makedirs(
-                os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-                             nnUNetPlans, 'GT_result'), exist_ok=True)
-            cv2.imwrite(img_with_GT_save_path, img_with_GT)
-
-            mask_save_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
-                                          os.environ['current_dataset'], nnUNetPlans, 'mask_result', test_img_name)
-            os.makedirs(
-                os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-                             nnUNetPlans, 'mask_result'), exist_ok=True)
-            cv2.imwrite(mask_save_path, mask_result)
-
-        metric_list = np.array(metric_list)
-        dice_each_case = np.mean(metric_list[:, :, 0], axis=1)
-        asd_each_case = np.mean(metric_list[:, :, 1], axis=1)
-
-        dice_mean = np.mean(dice_each_case, axis=0)
-        dice_std = np.std(dice_each_case, axis=0)
-
-        asd_mean = np.mean(asd_each_case, axis=0)
-        asd_std = np.std(asd_each_case, axis=0)
-
-        # save into csv
-        mean_csv_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'],
-                                     os.environ['current_dataset'], nnUNetPlans, 'test_result_mean.csv')
-        with open(mean_csv_path, 'w') as f:
-            f.write('dice_mean,dice_std,asd_mean,asd_std\n')
-            f.write(f'{dice_mean},{dice_std},{asd_mean},{asd_std}\n')
-
-        csv_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-                                nnUNetPlans, 'test_result.csv')
-        with open(csv_path, 'w') as f:
-            f.write('dice,asd\n')
-            for each_metric in metric_list:
-                f.write(f'{each_metric[0][0]},{each_metric[0][1]}\n')
-        shutil.copy(img_with_mask_save_path, 'static/result_visiual.png')
-        with open(output_file, 'a') as f:
-            f.write(f'\nimg_with_mask_save_path: {img_with_mask_save_path}\n')
-            f.write(f'\nmask_save_path: {mask_save_path}\n')
-            f.write(f'\nresult_csv_path: {csv_path}')
-            f.write(f'\nDICE: {dice_mean} ± {dice_std}\nASD: {asd_mean} ± {asd_std}')
+    
+        complete_command = f"conda activate {conda_env} && python test_save.py"
+        print(complete_command)
+        threading.Thread(target=run_command_async, args=(complete_command,)).start()
+        
 
     return jsonify({'status': complete_command})
 
 
 @app.route('/summary_result', methods=['POST'])
 def summary_result():
-    global process_status
+    
     with process_lock:
-        if process_status == 'running':
+        if os.environ['process_status'] == 'running':
             return jsonify({'error': 'A command is already running'})
 
     model_name = request.json.get('model_name', '')
@@ -710,33 +567,20 @@ def summary_result():
     dataset_id = request.json.get('dataset', '')
     os.environ['current_dataset'] = dataset_id
 
-    nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__2d'
-    if os.environ['MODEL_NAME'] == 'nnunet3d':
-        nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__3d_fullres'
-
-    input_folder = os.path.join(os.environ['nnUNet_raw'], os.environ['current_dataset'], 'imagesTs')
+    input_folder = os.path.join(os.environ['medseg_raw'], os.environ['current_dataset'], 'imagesTs')
     test_img_list = os.listdir(input_folder)
-    method_list_path = os.path.join(os.environ['nnUNet_results'])
+    method_list_path = os.path.join(os.environ['medseg_results'], os.environ['current_dataset'])
     method_list = os.listdir(method_list_path)
 
     for image_case_name in test_img_list:
-        if os.environ['MODEL_NAME'] == 'nnunet3d':
-            image_case_name = image_case_name + '.png'
-
         images = []
-
         for method_name in method_list:
-            img_with_GT_save_path = os.path.join(os.environ['nnUNet_results'], method_name,
-                                                 os.environ['current_dataset'], nnUNetPlans, 'GT_result',
-                                                 image_case_name)
-            print(img_with_GT_save_path)
+            img_with_GT_save_path = os.path.join(os.environ['medseg_results'], os.environ['current_dataset'], 'Ground_Truth', 'visualization_result', image_case_name)
             if os.path.exists(img_with_GT_save_path) and len(images) == 0:
                 img = Image.open(img_with_GT_save_path)
                 images.append(img)
 
-            img_with_mask_save_path = os.path.join(os.environ['nnUNet_results'], method_name,
-                                                   os.environ['current_dataset'], nnUNetPlans, 'visualization_result',
-                                                   image_case_name)
+            img_with_mask_save_path = os.path.join(os.environ['medseg_results'], os.environ['current_dataset'], method_name, 'visualization_result', image_case_name)
             if os.path.exists(img_with_mask_save_path):
                 img = Image.open(img_with_mask_save_path)
                 images.append(img)
@@ -744,17 +588,16 @@ def summary_result():
         total_width = sum([img.width for img in images])
         max_height = max([img.height for img in images])
 
-        # 创建一个新的空白图片，大小为所有图片宽度的总和，高度为最大的那张图片的高度
+        # create a new image with the same height and the sum of the width of the images
         stitched_image = Image.new('RGB', (total_width, max_height))
 
-        # 将每张图片粘贴到新图片上
+        # paste the images one after the other
         x_offset = 0
         for img in images:
             stitched_image.paste(img, (x_offset, 0))
             x_offset += img.width
 
-        output_save_path = os.path.join(os.environ['nnUNet_results'], 'summary', os.environ['current_dataset'],
-                                        'visualization_result')
+        output_save_path = os.path.join(os.environ['medseg_results'], os.environ['current_dataset'], 'summary_result')
         os.makedirs(output_save_path, exist_ok=True)
         stitched_image.save(os.path.join(output_save_path, image_case_name))
 
@@ -766,8 +609,7 @@ def summary_result():
     method_exist_all = []
     for method_name in method_list:
 
-        csv_path = os.path.join(os.environ['nnUNet_results'], method_name, os.environ['current_dataset'], nnUNetPlans,
-                                'test_result_mean.csv')
+        csv_path = os.path.join(os.environ['medseg_results'], os.environ['current_dataset'], method_name, 'test_result_mean.csv')
         if os.path.exists(csv_path):
             with open(csv_path, 'r') as f:
                 lines = f.readlines()
@@ -780,9 +622,7 @@ def summary_result():
                 method_exist_all.append(method_name)
 
     # save into csv
-    os.makedirs(os.path.join(os.environ['nnUNet_results'], 'summary', os.environ['current_dataset']), exist_ok=True)
-    mean_csv_path = os.path.join(os.environ['nnUNet_results'], 'summary', os.environ['current_dataset'],
-                                 'test_result_mean.csv')
+    mean_csv_path = os.path.join(os.environ['medseg_results'], os.environ['current_dataset'], 'summary_result', 'summary_result.csv')
     with open(mean_csv_path, 'w') as f:
         f.write('method,dice_mean,asd_mean\n')
         for i in range(len(method_exist_all)):
@@ -803,16 +643,9 @@ def edit_network():
 
 @app.route('/get_output', methods=['GET'])
 def get_output():
-    nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__2d'
-    # if os.environ['MODEL_NAME'] == 'nnunet3d':
-    #     nnUNetPlans = 'nnUNetTrainer__nnUNetPlans__3d_fullres'
+    
 
-    dir_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-                            nnUNetPlans, 'fold_' + os.environ['current_fold'])
-
-    # if os.environ['MODEL_NAME'] == 'nnunet3d':
-    #     dir_path = os.path.join(os.environ['nnUNet_results'], os.environ['MODEL_NAME'], os.environ['current_dataset'],
-    #                             'nnUNetTrainer__nnUNetPlans__3d_fullres', 'fold_' + os.environ['current_fold'])
+    dir_path = os.path.join(os.environ['medseg_results'], os.environ['current_dataset'], os.environ['MODEL_NAME'])
 
     try:
         if os.path.exists(dir_path):
@@ -835,54 +668,35 @@ def get_output():
 
 @app.route('/get_status', methods=['GET'])
 def get_status():
-    global process_status
-    return jsonify({'status': process_status})
+    
+    return jsonify({'status': os.environ['process_status']})
 
 
-@app.route('/stop_command', methods=['POST'])
-def stop_command():
-    global current_process
-    if current_process:
-        try:
-            print("Terminating process...")
-            # kill_process_tree(current_process.pid)
-            # current_process = None
-            current_process.terminate()
-            current_process.join()
-            current_process = None
-            return jsonify({'status': 'Command stopped'})
-        except:
-            return jsonify({'error': 'Stopped'})
-    else:
-        return jsonify({'error': 'No command is running'})
+
 
 
 @app.route('/')
 def index():
-    return render_template("index.html")  # 渲染 index.html
+    return render_template("index.html")  # render a template
 
 
 if __name__ == '__main__':
 
-    os.makedirs(os.path.join(os.getcwd(), 'nnUNet_raw'), exist_ok=True)
-    os.makedirs(os.path.join(os.getcwd(), 'nnUNet_preprocessed'), exist_ok=True)
-    os.makedirs(os.path.join(os.getcwd(), 'nnUNet_results'), exist_ok=True)
+    os.makedirs(os.path.join(os.getcwd(), 'medseg_raw'), exist_ok=True)
+    os.makedirs(os.path.join(os.getcwd(), 'medseg_results'), exist_ok=True)
 
-    os.environ['nnUNet_raw'] = os.path.join(os.getcwd(), 'nnUNet_raw')
-    os.environ['nnUNet_preprocessed'] = os.path.join(os.getcwd(), 'nnUNet_preprocessed')
-    os.environ['nnUNet_results'] = os.path.join(os.getcwd(), 'nnUNet_results')
+    os.environ['medseg_raw'] = os.path.join(os.getcwd(), 'medseg_raw')
+    os.environ['medseg_results'] = os.path.join(os.getcwd(), 'medseg_results')
 
     if os.environ.get('current_dataset') is None:
-        os.environ['current_dataset'] = 'Dataset0'
-        os.environ['MODEL_NAME'] = 'nnunet'
-    if os.environ.get('current_fold') is None:
-        os.environ['current_fold'] = '0'
+        os.environ['current_dataset'] = os.listdir(os.environ['medseg_raw'])[0]
+        os.environ['MODEL_NAME'] = 'unet'
+
 
     with open(output_file, 'w') as f:
         f.write("\n")
 
-    webbrowser.open("http://127.0.0.1:5000/", new=2)
-
+    webbrowser.open("http://127.0.0.1:5000/", new=1)
     app.run(debug=True, host='0.0.0.0', port=5000)
 
-# todo list: resize, 3d, 优化去除fold选择
+

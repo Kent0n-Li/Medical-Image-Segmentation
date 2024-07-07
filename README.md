@@ -11,10 +11,6 @@
 The current code is designed for Windows, not for Linux. 
 
 
-If you only want to use nnSAM, please install [this](https://github.com/Kent0n-Li/nnSAM). <br>
-如果你只想运行nnSAM,请访问该代码仓库[this](https://github.com/Kent0n-Li/nnSAM)
-
-
 Install (安装步骤):
 
 ```bash
@@ -35,7 +31,7 @@ pip install timm
 pip install git+https://github.com/Kent0n-Li/nnSAM.git
 
 git clone https://github.com/Kent0n-Li/Medical-Image-Segmentation.git
-cd Medical-Image-Segmentation
+cd Medical-Image-Segmentation-Benchmark
 pip install -r requirements.txt
 ```
 
@@ -44,6 +40,8 @@ pip install -r requirements.txt
 python web.py
 ```
 
+If you only want to use nnSAM, please install [this](https://github.com/Kent0n-Li/nnSAM). <br>
+如果你只想运行nnSAM,请访问该代码仓库[this](https://github.com/Kent0n-Li/nnSAM)
 
 样例数据集：[Demo Dataset](https://github.com/Kent0n-Li/Medical-Image-Segmentation/tree/main/Demo_dataset)
 

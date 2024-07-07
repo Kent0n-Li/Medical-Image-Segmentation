@@ -79,3 +79,8 @@ def parse_args(type=None):
                             default=4, help='Batch Size')
 
     return parser.parse_args()
+
+
+def print_web(text):
+    with open(output_file, 'a') as f:
+        f.write(text + '\n')
