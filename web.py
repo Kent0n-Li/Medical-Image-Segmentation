@@ -689,7 +689,10 @@ if __name__ == '__main__':
     os.environ['medseg_results'] = os.path.join(os.getcwd(), 'medseg_results')
 
     if os.environ.get('current_dataset') is None:
-        os.environ['current_dataset'] = os.listdir(os.environ['medseg_raw'])[0]
+        if len(os.listdir(os.environ['medseg_raw'])) == 0:
+            os.environ['current_dataset'] = 'Dataset001'
+        else:
+            os.environ['current_dataset'] = os.listdir(os.environ['medseg_raw'])[0]
         os.environ['MODEL_NAME'] = 'unet'
 
 
