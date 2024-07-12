@@ -117,6 +117,7 @@ class DynamicDataset(data.Dataset):
         if npimg.ndim == 2:
             npimg = np.expand_dims(npimg, axis=0)
         elif npimg.ndim == 3:
+            npimg = cv2.cvtColor(npimg, cv2.COLOR_BGR2RGB)
             npimg = npimg.transpose((2, 0, 1))
 
         ori_shape = npimg.shape
