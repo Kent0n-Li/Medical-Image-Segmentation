@@ -94,7 +94,7 @@ class DynamicDataset(data.Dataset):
 
         if file_end in ['png']:
             npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-            npimg = np.array(npimg)
+            npimg = np.array(npimg)/255.0
 
         elif file_end in ['gz', 'nrrd', 'mha', 'nii.gz', 'nii']:
             npimg = sitk.ReadImage(img_path)
