@@ -98,7 +98,7 @@ class DynamicDataset(data.Dataset):
 
         if file_end in ['png']:
             npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-            npimg = np.array(npimg)
+            npimg = np.array(npimg)/255.0
             npgt = Image.open(gt_path)
             npgt = np.array(npgt)
 
