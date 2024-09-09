@@ -10,40 +10,26 @@
 
 The current code is designed for Windows, not for Linux. 
 
+If you only want to use nnSAM, please install [this](https://github.com/Kent0n-Li/nnSAM). <br>
+如果你只想运行nnSAM,请访问该代码仓库[this](https://github.com/Kent0n-Li/nnSAM)
+
+样例数据集：[Demo Dataset](https://github.com/Kent0n-Li/Medical-Image-Segmentation/tree/main/Demo_dataset)
+
 
 Install (安装步骤):
 
 ```bash
-conda create -n nnsam python=3.9
-conda activate nnsam
-```
-
-Choose a suitable Pytorch with CUDA to install <br> 
-根据CUDA选择合适版本的Pytorch进行安装
-```bash
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-```
-
-```bash
-pip install git+https://github.com/ChaoningZhang/MobileSAM.git
-pip install timm
-pip install git+https://github.com/Kent0n-Li/nnSAM.git
-
 git clone https://github.com/Kent0n-Li/Medical-Image-Segmentation.git
 cd Medical-Image-Segmentation-Benchmark
 pip install -r requirements.txt
 ```
 
-运行可视化软件
+Running visualization software (运行可视化软件)
 ```bash
 python web.py
 ```
 
-If you only want to use nnSAM, please install [this](https://github.com/Kent0n-Li/nnSAM). <br>
-如果你只想运行nnSAM,请访问该代码仓库[this](https://github.com/Kent0n-Li/nnSAM)
 
-样例数据集：[Demo Dataset](https://github.com/Kent0n-Li/Medical-Image-Segmentation/tree/main/Demo_dataset)
 
 
 ## Overview 页面总览
