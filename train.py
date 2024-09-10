@@ -97,8 +97,15 @@ class DynamicDataset(data.Dataset):
         file_end = imagename.split('.')[-1]
 
         if file_end in ['png']:
-            npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-            npimg = np.array(npimg)/255.0
+            npimg = Image.open(img_path)
+            if npimg.mode == 'L':  # 'L' 模式表示灰度图像
+                npimg = np.array(npimg) / 255.0  # 保持为单通道
+                npimg = np.expand_dims(npimg, axis=0)  # 增加一个维度作为通道
+            else:
+                npimg = npimg.convert('RGB')  
+                npimg = np.array(npimg) / 255.0
+                npimg = npimg.transpose((2, 0, 1))
+
             npgt = Image.open(gt_path)
             npgt = np.array(npgt)
 
@@ -108,17 +115,15 @@ class DynamicDataset(data.Dataset):
             npgt = sitk.ReadImage(gt_path)
             npgt = sitk.GetArrayFromImage(npgt)
 
+            npimg = np.expand_dims(npimg, axis=0)
+
+
         if self.augmentations:
             augmented = self.augmentations(image=npimg, mask=npgt)
             npimg = augmented['image'].copy()
             npgt = augmented['mask'].copy()
 
 
-        if npimg.ndim == 2:
-            npimg = np.expand_dims(npimg, axis=0)
-        elif npimg.ndim == 3:
-            npimg = cv2.cvtColor(npimg, cv2.COLOR_BGR2RGB)
-            npimg = npimg.transpose((2, 0, 1))
 
         ori_shape = npimg.shape
         npgt = np.expand_dims(npgt, axis=0)
@@ -180,13 +185,15 @@ def train(batch_size=4, max_epochs=200, base_lr=0.01, seed=1234, n_gpu=1, model_
 
 
                             
-    augmentations = A.Compose([
+    augmentations = None
+    
+    '''A.Compose([
             A.RandomBrightnessContrast(p=0.5, brightness_limit=(brightness_limit_min, brightness_limit_max),
                                        contrast_limit=(contrast_limit_min, contrast_limit_max)) if RandomBrightnessContrast else A.NoOp(),
             A.RandomRotate90(p=0.5) if RandomRotate90 else A.NoOp(),
             A.VerticalFlip(p=0.5) if VerticalFlip else A.NoOp(),
             A.HorizontalFlip(p=0.5) if HorizontalFlip else A.NoOp()
-        ])
+        ])'''
 
 
 
