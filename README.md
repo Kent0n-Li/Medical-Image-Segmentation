@@ -20,7 +20,7 @@ Install (安装步骤):
 
 ```bash
 git clone https://github.com/Kent0n-Li/Medical-Image-Segmentation.git
-cd Medical-Image-Segmentation-Benchmark
+cd Medical-Image-Segmentation
 pip install -r requirements.txt
 ```
 
