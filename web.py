@@ -29,6 +29,8 @@ current_output = ""
 os.environ['process_status'] = 'not_started'
 
 conda_env = os.path.basename(sys.prefix)
+python_path = sys.executable
+
 
 
 def kill_process_tree(pid):
@@ -334,7 +336,7 @@ def import_dataset():
         copy_and_resize_images(testing_label_path, target_paths['testing_label'], test_label_list, image_size)
 
         with process_lock:
-            complete_command = f"conda activate {conda_env} && python data_process.py"
+            complete_command = f"{python_path} data_process.py"
             print_web(complete_command)
             threading.Thread(target=run_command_async, args=(complete_command,)).start()
 
@@ -509,7 +511,7 @@ def train_model():
         totalEpochs = request.json.get('totalEpochs', '100')
         learningRate = request.json.get('learningRate', '0.01')
 
-        complete_command = f"conda activate {conda_env} && python train.py --batch_size {batchSize} --max_epochs {totalEpochs} --base_lr {learningRate}"
+        complete_command = f"{python_path} train.py --batch_size {batchSize} --max_epochs {totalEpochs} --base_lr {learningRate}"
 
         print(complete_command)
 
@@ -535,7 +537,7 @@ def run_test():
         output_folder = os.path.join(os.environ['medseg_results'], os.environ['current_dataset'], os.environ['MODEL_NAME'], 'test_pred')
         os.makedirs(output_folder, exist_ok=True)
 
-        complete_command = f"conda activate {conda_env} && python test.py"
+        complete_command = f"{python_path} test.py"
 
         print(input_folder)
         print(complete_command)
@@ -546,7 +548,7 @@ def run_test():
 
     with process_lock:
     
-        complete_command = f"conda activate {conda_env} && python test_save.py"
+        complete_command = f"{python_path} test_save.py"
         print(complete_command)
         threading.Thread(target=run_command_async, args=(complete_command,)).start()
         
