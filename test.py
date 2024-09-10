@@ -93,17 +93,21 @@ class DynamicDataset(data.Dataset):
         file_end = imagename.split('.')[-1]
 
         if file_end in ['png']:
-            npimg = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-            npimg = np.array(npimg)/255.0
+            npimg = Image.open(img_path)
+            if npimg.mode == 'L':  # 'L' 模式表示灰度图像
+                npimg = np.array(npimg) / 255.0  # 保持为单通道
+                npimg = np.expand_dims(npimg, axis=0)  # 增加一个维度作为通道
+            else:
+                npimg = npimg.convert('RGB')  
+                npimg = np.array(npimg) / 255.0
+                npimg = npimg.transpose((2, 0, 1))
 
         elif file_end in ['gz', 'nrrd', 'mha', 'nii.gz', 'nii']:
             npimg = sitk.ReadImage(img_path)
             npimg = sitk.GetArrayFromImage(npimg)
-
-        if npimg.ndim == 2:
             npimg = np.expand_dims(npimg, axis=0)
-        elif npimg.ndim == 3:
-            npimg = npimg.transpose((2, 0, 1))
+
+
 
         ori_shape = npimg.shape
         npimg = torch.from_numpy(npimg)
